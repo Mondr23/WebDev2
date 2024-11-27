@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }} - Details{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Image Section -->
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="{{ listing.title }}">
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="col-md-6">
+            <h1 class="display-5">{{ listing.title }}</h1>
+            <p class="text-muted">{{ listing.description }}</p>
+            <h3 class="text-success">${{ listing.price }}</h3>
+            <p class="text-secondary">Category: {{ listing.category.name }}</p>
+            <p class="text-secondary">Posted by: {{ listing.owner.username }}</p>
+            <div class="mt-4">
+                <a href="/messages/send" class="btn btn-primary btn-lg">Contact Seller</a>
+                <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-lg">Back to Listings</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
