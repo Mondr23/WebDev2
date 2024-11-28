@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }} - Details{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Image Section -->
+        <div class="col-md-6">
+            <div class="card">
+                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="{{ listing.title }}">
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="col-md-6">
+            <h1 class="display-5">{{ listing.title }}</h1>
+            <p class="text-muted">{{ listing.description }}</p>
+            <h3 class="text-success">${{ listing.price }}</h3>
+            <p class="text-secondary">Category: {{ listing.category.name }}</p>
+            <p class="text-secondary">Posted by: {{ listing.owner.username }}</p>
+            <div class="mt-4">
+                <a href="/messages/send" class="btn btn-primary btn-lg">Contact Seller</a>
+                <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-lg">Back to Listings</a>
+                <!-- Like Button -->
+                <button 
+                    class="btn btn-primary btn-like d-flex align-items-center"
+                    data-id="{{ listing.id }}"
+                    {% if listing in current_user.favorites %}data-favorited="true"{% else %}data-favorited="false"{% endif %}
+                >
+                    <i class="bi {% if listing in current_user.favorites %}bi-heart-fill{% else %}bi-heart{% endif %} me-2"></i>
+                    <span>{% if listing in current_user.favorites %}Liked{% else %}Like{% endif %}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Add event listener to "Like" button
+        const likeButton = document.querySelector('.btn-like');
+
+        if (likeButton) {
+            likeButton.addEventListener('click', async function () {
+                const button = this;
+                const itemId = button.getAttribute('data-id');
+                const isFavorited = button.getAttribute('data-favorited') === 'true';
+
+                // Send AJAX request
+                const response = await fetch('/favorites/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update button state
+                    button.setAttribute('data-favorited', data.favorited);
+
+                    // Update button appearance
+                    const icon = button.querySelector('i');
+                    const text = button.querySelector('span');
+                    if (data.favorited) {
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                        text.textContent = 'Liked';
+                    } else {
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                        text.textContent = 'Like';
+                    }
+                } else {
+                    console.error('Error:', data.error);
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}

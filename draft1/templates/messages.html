@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-3">
+            <h3 class="mb-4">Contacts</h3>
+            <!-- Contact List -->
+            <ul class="list-group shadow-sm">
+                {% for message in received_messages %}
+                <li class="list-group-item d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
+                    </div>
+                    <div>
+                        <h6 class="mb-0">{{ message.sender.username }}</h6>
+                        <small class="text-muted">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-lg-9">
+            <h3 class="mb-4">Messages</h3>
+            <!-- Messages -->
+            <div class="messages-container border rounded shadow-sm p-3 bg-light">
+                {% for message in received_messages %}
+                <div class="message mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                            <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
+                        </div>
+                        <h6 class="mb-0">{{ message.sender.username }}</h6>
+                        <small class="text-muted ms-auto">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
+                    </div>
+                    <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
+                        {{ message.content }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not received_messages %}
+                <p class="text-muted text-center">No received messages.</p>
+                {% endif %}
+            </div>
+
+            <h3 class="mt-5">Sent Messages</h3>
+            <!-- Sent Messages -->
+            <div class="messages-container border rounded shadow-sm p-3 bg-light">
+                {% for message in sent_messages %}
+                <div class="message mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                            <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
+                        </div>
+                        <h6 class="mb-0">To: {{ message.recipient.username }}</h6>
+                        <small class="text-muted ms-auto">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
+                    </div>
+                    <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
+                        {{ message.content }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not sent_messages %}
+                <p class="text-muted text-center">No sent messages.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
