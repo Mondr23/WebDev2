@@ -7,6 +7,7 @@ from models import User, Car, Message, Category, Listing
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import g
 from models import Category
+from flask import abort
 
 @app.route('/')
 def home():
@@ -33,13 +34,30 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        hashed_password = generate_password_hash(password, method='scrypt')  # Use scrypt
+
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email is already registered. Please use a different email.', 'danger')
+            return redirect(url_for('register'))
+
+        # Check if username already exists (optional)
+        existing_username = User.query.filter_by(username=username).first()
+        if existing_username:
+            flash('Username is already taken. Please choose a different one.', 'danger')
+            return redirect(url_for('register'))
+
+        # Hash password and create new user
+        hashed_password = generate_password_hash(password, method='scrypt')
         new_user = User(username=username, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
+
     return render_template('register.html')
+
 
 @app.route('/profile')
 def profile():
@@ -49,6 +67,14 @@ def profile():
         flash('Please log in to access your profile.', 'danger')
         return redirect(url_for('login'))
 
+@app.route('/admin')
+@login_required
+def admin_page():
+    if not current_user.is_admin:
+        abort(403)  # Forbid access if not an admin
+    users = User.query.all()  # Example: Fetch all users
+    listings = Listing.query.all()  # Example: Fetch all listings
+    return render_template('admin.html', users=users, listings=listings)
 
 
 @app.route('/sell', methods=['GET', 'POST'])

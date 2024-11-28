@@ -9,7 +9,7 @@ from flask import g
 from models import Category
 from flask import abort
 from flask import request, jsonify
-from flask_login import current_user, login_required
+from flask_login import logout_user, current_user, login_required
 
 @app.route('/')
 def home():
@@ -289,8 +289,8 @@ def favorites_page():
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    current_user.is_active = False  # Mark user as inactive
-    db.session.commit()
-    flash('You have been logged out.', 'success')
-    return redirect(url_for('login'))
+    if current_user.is_authenticated:  # Ensure a user is logged in
+        current_user.is_active = False  # Mark user as inactive
+        db.session.commit()
+    logout_user()  # Log out the user
+    return redirect(url_for('home'))

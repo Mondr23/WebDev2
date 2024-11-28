@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     cars = db.relationship('Car', backref='owner', lazy=True)
+    is_admin = db.Column(db.Boolean, default=False)
    
     # Define the relationship to listings
     listings = db.relationship('Listing', back_populates='owner', lazy=True)
