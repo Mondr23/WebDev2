@@ -3,13 +3,14 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 import os
 from app import app, db
-from models import User, Message, Category, Listing, user_favorites
+from models import User, Message, Category, Listing, user_favorites,  ListingImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import g
 from models import Category
 from flask import abort
 from flask import request, jsonify
 from flask_login import logout_user, current_user, login_required
+from sqlalchemy import func
 
 @app.route('/')
 def home():
@@ -55,46 +56,44 @@ def profile():
         flash('Please log in to access your profile.', 'danger')
         return redirect(url_for('login'))
 
-@app.route('/admin')
+
+@app.route('/admin_page')
 @login_required
 def admin_page():
     if not current_user.is_admin:
-        abort(403)  # Restrict access to admins only
-    
-    # User statistics
+        flash("Access denied.", "danger")
+        return redirect(url_for('home'))
+
+    # Total statistics
     total_users = User.query.count()
     admin_users = User.query.filter_by(is_admin=True).count()
-    active_users = User.query.filter_by(is_active=True).count()
-    
-    # Listing statistics
     total_listings = Listing.query.count()
-    avg_price = db.session.query(db.func.avg(Listing.price)).scalar()
-    most_popular_category = db.session.query(
-        Category.name, db.func.count(Listing.id).label('total')
-    ).join(Listing).group_by(Category.name).order_by(db.func.count(Listing.id).desc()).first()
-    recent_listings = Listing.query.order_by(Listing.id.desc()).limit(5).all()
+    active_users = User.query.filter_by(is_active=True).count()
 
-    # Listings by category for the chart
-    listings_by_category = db.session.query(
-        Category.name, db.func.count(Listing.id).label('total')
+    # Listings by category
+    category_data = db.session.query(
+        Category.name, func.count(Listing.id)
     ).join(Listing).group_by(Category.name).all()
+    category_labels = [category[0] for category in category_data]
+    category_counts = [category[1] for category in category_data]
 
-    # Prepare data for the chart
-    category_labels = [category.name for category in listings_by_category]
-    category_counts = [category.total for category in listings_by_category]
+    # Listings by location
+    location_data = db.session.query(
+        Listing.location, func.count(Listing.id)
+    ).group_by(Listing.location).all()
+    location_labels = [location[0] for location in location_data]
+    location_counts = [location[1] for location in location_data]
 
-    # Pass data to the template
     return render_template(
         'admin.html',
         total_users=total_users,
         admin_users=admin_users,
-        active_users=active_users,
         total_listings=total_listings,
-        avg_price=avg_price,
-        most_popular_category=most_popular_category,
-        recent_listings=recent_listings,
+        active_users=active_users,
         category_labels=category_labels,
-        category_counts=category_counts
+        category_counts=category_counts,
+        location_labels=location_labels,
+        location_counts=location_counts
     )
 
 
@@ -169,33 +168,75 @@ def delete_listing(listing_id):
     return redirect(url_for('manage_data'))
 
 
+from werkzeug.utils import secure_filename
+import os
+
 @app.route('/sell', methods=['GET', 'POST'])
 @login_required
 def sell():
     if request.method == 'POST':
+        # Retrieve form data
         title = request.form['title']
         description = request.form['description']
         price = float(request.form['price'])
         category_id = int(request.form['category_id'])
+
+        # Additional fields
+        make = request.form['make']
+        model = request.form['model']
+        year = int(request.form['year'])
+        mileage = int(request.form['mileage'])
+        fuel_type = request.form['fuel_type']
+        transmission = request.form['transmission']
+        location = request.form['location']
+        contact_number = request.form['contact_number']
+
+        # Process main image (optional)
         image = request.files['image']
         image_filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+        image.save(image_path)
 
+        # Create new listing
         new_listing = Listing(
             title=title,
             description=description,
             price=price,
             category_id=category_id,
             user_id=current_user.id,
-            image_file=image_filename
+            image_file=image_filename,
+            make=make,
+            model=model,
+            year=year,
+            mileage=mileage,
+            fuel_type=fuel_type,
+            transmission=transmission,
+            location=location,
+            contact_number=contact_number
         )
         db.session.add(new_listing)
         db.session.commit()
-        flash('Your listing has been posted!', 'success')
+
+        # Handle multiple images
+        images = request.files.getlist('images')
+        for image in images:
+            if image.filename:
+                image_filename = secure_filename(image.filename)
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+                image.save(image_path)
+
+                # Save each image to the database
+                listing_image = ListingImage(listing_id=new_listing.id, image_file=image_filename)
+                db.session.add(listing_image)
+
+        db.session.commit()
+        flash('Your listing has been posted with images!', 'success')
         return redirect(url_for('home'))
 
+    # Pass categories to the template
     categories = Category.query.all()
     return render_template('sell.html', categories=categories)
+
 
 
 @app.route('/category/<int:category_id>')
@@ -259,7 +300,6 @@ def search():
         ).all()
 
     return render_template('search.html', query=query, results=results)
-
 
 @app.route('/favorites/toggle', methods=['POST'])
 @login_required

@@ -13,7 +13,6 @@ user_favorites = db.Table(
     db.Column('listing_id', db.Integer, db.ForeignKey('listing.id'), primary_key=True)
 )
 
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
@@ -29,21 +28,39 @@ class User(db.Model, UserMixin):
     # Relationship to Favorited Listings
     favorites = db.relationship('Listing', secondary=user_favorites, backref='favorited_by', lazy='dynamic')
 
-
 class Listing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    image_file = db.Column(db.String(50), nullable=False, default='default.jpg')
+    image_file = db.Column(db.String(50), nullable=True, default='default.jpg')  # Optional: Main image
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+
+    # New fields for specifications
+    make = db.Column(db.String(50), nullable=True)
+    model = db.Column(db.String(50), nullable=True)
+    year = db.Column(db.Integer, nullable=True)
+    mileage = db.Column(db.Integer, nullable=True)  # In kilometers
+    fuel_type = db.Column(db.String(50), nullable=True)
+    transmission = db.Column(db.String(50), nullable=True)
+
+    # New fields for contact and location
+    location = db.Column(db.String(255), nullable=True)
+    contact_number = db.Column(db.String(20), nullable=True)
 
     # Relationships
     owner = db.relationship('User', back_populates='listings')
     category = db.relationship('Category', back_populates='listings')
+    images = db.relationship('ListingImage', back_populates='listing', cascade='all, delete-orphan')
 
+class ListingImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
+    image_file = db.Column(db.String(255), nullable=False)
 
+    # Relationship back to the listing
+    listing = db.relationship('Listing', back_populates='images')
 
 class Car(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,9 +74,8 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     
-       # Relationship to Listing
+    # Relationship to Listing
     listings = db.relationship('Listing', back_populates='category')
-
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,5 +87,3 @@ class Message(db.Model):
     # Relationships
     sender = db.relationship('User', foreign_keys=[sender_id], backref='messages_sent')
     recipient = db.relationship('User', foreign_keys=[recipient_id], backref='messages_received')
-
-

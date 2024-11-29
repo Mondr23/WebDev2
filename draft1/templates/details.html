@@ -2,27 +2,94 @@
 {% block title %}{{ listing.title }} - Details{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <div class="row">
+    <div class="row gx-5 align-items-start">
         <!-- Image Section -->
         <div class="col-md-6">
-            <div class="card">
-                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="{{ listing.title }}">
+            <div class="card shadow border-0">
+                <div id="listingCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <!-- Main Image -->
+                        <div class="carousel-item active">
+                            <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="d-block w-100 rounded" alt="{{ listing.title }}">
+                        </div>
+                        <!-- Additional Images -->
+                        {% for image in listing.images %}
+                        <div class="carousel-item">
+                            <img src="{{ url_for('static', filename='car-images/' + image.image_file) }}" class="d-block w-100 rounded" alt="{{ listing.title }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <span class="badge bg-success position-absolute top-0 end-0 m-3 p-2 fs-5">${{ listing.price }}</span>
             </div>
         </div>
 
         <!-- Details Section -->
         <div class="col-md-6">
-            <h1 class="display-5">{{ listing.title }}</h1>
-            <p class="text-muted">{{ listing.description }}</p>
-            <h3 class="text-success">${{ listing.price }}</h3>
-            <p class="text-secondary">Category: {{ listing.category.name }}</p>
-            <p class="text-secondary">Posted by: {{ listing.owner.username }}</p>
-            <div class="mt-4">
-                <a href="/messages/send" class="btn btn-primary btn-lg">Contact Seller</a>
-                <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-lg">Back to Listings</a>
+            <div class="mb-4">
+                <h1 class="display-5 fw-bold">{{ listing.title }}</h1>
+                <p class="text-muted">{{ listing.description }}</p>
+            </div>
+
+            <!-- Key Information -->
+            <ul class="list-unstyled mb-4">
+                <li><strong>Category:</strong> <span class="text-primary">{{ listing.category.name }}</span></li>
+                <li><strong>Posted by:</strong> <span class="text-secondary">{{ listing.owner.username }}</span></li>
+                <li><strong>Location:</strong> <span class="text-secondary">{{ listing.location }}</span></li>
+                <li><strong>Contact Number:</strong> <a href="tel:{{ listing.contact_number }}" class="text-decoration-none">{{ listing.contact_number }}</a></li>
+            </ul>
+
+            <!-- Specifications -->
+            <h5 class="mt-4">Specifications</h5>
+            <table class="table table-striped">
+                <tbody>
+                    <tr>
+                        <td><strong>Make</strong></td>
+                        <td>{{ listing.make }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Model</strong></td>
+                        <td>{{ listing.model }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Year</strong></td>
+                        <td>{{ listing.year }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mileage</strong></td>
+                        <td>{{ listing.mileage }} km</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fuel Type</strong></td>
+                        <td>{{ listing.fuel_type }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Transmission</strong></td>
+                        <td>{{ listing.transmission }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Actions -->
+            <div class="d-flex align-items-center gap-3 mt-4">
+                <a href="/messages/send?seller={{ listing.owner.username }}" class="btn btn-primary btn-lg px-4">
+                    <i class="bi bi-envelope me-2"></i>Contact Seller
+                </a>
+                <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Listings
+                </a>
+
                 <!-- Like Button -->
                 <button 
-                    class="btn btn-primary btn-like d-flex align-items-center"
+                    class="btn btn-outline-danger btn-lg px-4 btn-like d-flex align-items-center"
                     data-id="{{ listing.id }}"
                     {% if listing in current_user.favorites %}data-favorited="true"{% else %}data-favorited="false"{% endif %}
                 >
@@ -32,13 +99,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Similar Listings Section -->
+    <div class="mt-5">
+        <h3 class="text-center fw-bold mb-4">Similar Listings</h3>
+        <div class="row g-4">
+            {% for similar in similar_listings %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card shadow-sm border-0 h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ similar.description[:100] }}...">
+                    <img src="{{ url_for('static', filename='car-images/' + similar.image_file) }}" class="card-img-top rounded" alt="{{ similar.title }}">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ similar.title }}</h5>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('listing_details', listing_id=similar.id) }}" class="btn btn-sm btn-outline-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Add event listener to "Like" button
+        // Like Button Interaction
         const likeButton = document.querySelector('.btn-like');
-
         if (likeButton) {
             likeButton.addEventListener('click', async function () {
                 const button = this;
@@ -48,9 +136,7 @@
                 // Send AJAX request
                 const response = await fetch('/favorites/toggle', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ item_id: itemId })
                 });
 
@@ -59,8 +145,6 @@
                 if (response.ok) {
                     // Update button state
                     button.setAttribute('data-favorited', data.favorited);
-
-                    // Update button appearance
                     const icon = button.querySelector('i');
                     const text = button.querySelector('span');
                     if (data.favorited) {
@@ -77,7 +161,12 @@
                 }
             });
         }
+
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl)
+        })
     });
 </script>
-
 {% endblock %}

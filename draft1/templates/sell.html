@@ -3,20 +3,27 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <h2 class="text-center">Sell Your Car</h2>
+        <h2 class="text-center mb-4">Sell Your Car</h2>
         <form method="POST" enctype="multipart/form-data">
+            <!-- Car Title -->
             <div class="mb-3">
                 <label for="title" class="form-label">Car Title</label>
-                <input type="text" class="form-control" id="title" name="title" required>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the car title" required>
             </div>
+
+            <!-- Description -->
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Provide a detailed description" required></textarea>
             </div>
+
+            <!-- Price -->
             <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" class="form-control" id="price" name="price" required>
+                <label for="price" class="form-label">Price ($)</label>
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter the price" required>
             </div>
+
+            <!-- Category -->
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
                 <select class="form-select" id="category" name="category_id" required>
@@ -25,12 +32,100 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <!-- Specifications -->
             <div class="mb-3">
-                <label for="image" class="form-label">Car Image</label>
+                <label for="make" class="form-label">Make</label>
+                <input type="text" class="form-control" id="make" name="make" placeholder="Enter the car make" required>
+            </div>
+            <div class="mb-3">
+                <label for="model" class="form-label">Model</label>
+                <input type="text" class="form-control" id="model" name="model" placeholder="Enter the car model" required>
+            </div>
+            <div class="mb-3">
+                <label for="year" class="form-label">Year</label>
+                <input type="number" class="form-control" id="year" name="year" placeholder="Enter the car year" required>
+            </div>
+            <div class="mb-3">
+                <label for="mileage" class="form-label">Mileage (km)</label>
+                <input type="number" class="form-control" id="mileage" name="mileage" placeholder="Enter the mileage" required>
+            </div>
+            <div class="mb-3">
+                <label for="fuel_type" class="form-label">Fuel Type</label>
+                <input type="text" class="form-control" id="fuel_type" name="fuel_type" placeholder="Enter the fuel type (e.g., Petrol, Diesel)" required>
+            </div>
+            <div class="mb-3">
+                <label for="transmission" class="form-label">Transmission</label>
+                <input type="text" class="form-control" id="transmission" name="transmission" placeholder="Enter the transmission type (e.g., Manual, Automatic)" required>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" name="location" placeholder="Enter your city or address" required>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="mb-3">
+                <label for="contact_number" class="form-label">Contact Number</label>
+                <input type="tel" class="form-control" id="contact_number" name="contact_number" placeholder="Enter your phone number" pattern="^\+?[0-9\s\-]+$" required>
+                <small class="form-text text-muted">Include your country code if applicable (e.g., +1 234 567 8901).</small>
+            </div>
+
+            <!-- Main Image -->
+            <div class="mb-3">
+                <label for="image" class="form-label">Main Image</label>
                 <input type="file" class="form-control" id="image" name="image" required>
             </div>
+
+            <!-- Additional Images -->
+            <div class="mb-3">
+                <label for="images" class="form-label">Additional Images</label>
+                <input type="file" class="form-control" id="images" name="images" multiple>
+                <small class="form-text text-muted">You can upload multiple images for your car.</small>
+            </div>
+
+            <!-- Submit Button -->
             <button type="submit" class="btn btn-primary w-100">List Car</button>
         </form>
     </div>
 </div>
+
+<!-- JavaScript for Image Previews and Geolocation -->
+<script>
+    // Image Preview
+    document.getElementById('images').addEventListener('change', function(event) {
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'mt-3';
+        const files = event.target.files;
+
+        [...files].forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'img-thumbnail me-2 mb-2';
+                img.style.width = '100px';
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        event.target.parentElement.appendChild(previewContainer);
+    });
+
+    // Autofill Location using Geolocation
+    document.getElementById('location').addEventListener('focus', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const { latitude, longitude } = position.coords;
+                fetch(`https://geocode.xyz/${latitude},${longitude}?geoit=json`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('location').value = `${data.city}, ${data.country}`;
+                    });
+            });
+        }
+    });
+</script>
 {% endblock %}
