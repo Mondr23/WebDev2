@@ -11,12 +11,16 @@ from flask import abort
 from flask import request, jsonify
 from flask_login import logout_user, current_user, login_required
 from sqlalchemy import func
+from flask import jsonify
+from werkzeug.utils import secure_filename
+import os
 
 @app.route('/')
 def home():
     categories = Category.query.all()
     listings = Listing.query.limit(12).all()  # Fetch the first 12 listings
     return render_template('home.html', categories=categories, listings=listings)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -34,6 +38,7 @@ def login():
         flash('Login unsuccessful. Please check email and password.', 'danger')
     return render_template('login.html')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -48,13 +53,18 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
+
 @app.route('/profile')
 def profile():
+     # Get the current user's listings
+    user_listings = Listing.query.filter_by(user_id=current_user.id).all()
     if current_user.is_authenticated:
-        return render_template('profile.html', user=current_user)
+        return render_template('profile.html', user=current_user, user_listings=user_listings)
     else:
         flash('Please log in to access your profile.', 'danger')
         return redirect(url_for('login'))
+    
+
 
 
 @app.route('/admin_page')
@@ -109,6 +119,7 @@ def manage_data():
 
     return render_template('manage_data.html', users=users, listings=listings)
 
+
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
@@ -126,21 +137,21 @@ def edit_user(user_id):
 
     return render_template('edit_user.html', user=user)
 
+
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
     if not current_user.is_admin:
         abort(403)
 
-    user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
     flash('User deleted successfully!', 'success')
     return redirect(url_for('manage_data'))
 
-@app.route('/edit_listing/<int:listing_id>', methods=['GET', 'POST'])
-@login_required
-def edit_listing(listing_id):
+
+
     if not current_user.is_admin:
         abort(403)
 
@@ -154,22 +165,75 @@ def edit_listing(listing_id):
 
     return render_template('edit_listing.html', listing=listing)
 
-
-@app.route('/delete_listing/<int:listing_id>', methods=['POST'])
+@app.route('/edit/<int:listing_id>', methods=['GET', 'POST'])
 @login_required
-def delete_listing(listing_id):
-    if not current_user.is_admin:
+def edit_listing(listing_id):
+    listing = Listing.query.get_or_404(listing_id)
+
+    # Ensure only the owner can edit
+    if listing.user_id != current_user.id:
         abort(403)
 
+    if request.method == 'POST':
+        # Update the listing with new data
+        listing.title = request.form['title']
+        listing.description = request.form['description']
+        listing.price = request.form['price']
+        listing.category_id = request.form['category_id']
+        listing.make = request.form['make']
+        listing.model = request.form['model']
+        listing.year = request.form['year']
+        listing.mileage = request.form['mileage']
+        listing.fuel_type = request.form['fuel_type']
+        listing.transmission = request.form['transmission']
+        listing.location = request.form['location']
+        listing.contact_number = request.form['contact_number']
+
+        # Handle file uploads (if provided)
+        if 'image' in request.files and request.files['image'].filename != '':
+            image_file = save_image(request.files['image'])  # Replace with your image-saving logic
+            listing.image_file = image_file
+
+        if 'images' in request.files:
+            additional_images = save_images(request.files.getlist('images'))  # Save additional images logic
+
+        # Commit changes
+        db.session.commit()
+        flash('Listing updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    return render_template('edit_listing.html', listing=listing, categories=Category.query.all())
+
+
+@app.route('/delete/<int:listing_id>', methods=['POST'])
+@login_required
+def delete_listing(listing_id):
+    # Fetch the listing to be deleted
     listing = Listing.query.get_or_404(listing_id)
+
+   # Ensure the current user owns the listing or is an admin
+    if listing.user_id != current_user.id and not current_user.is_admin:
+         abort(403)
+
+    # Delete the listing
     db.session.delete(listing)
     db.session.commit()
     flash('Listing deleted successfully!', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/update_user_admin_status/<int:user_id>', methods=['POST'])
+@login_required
+def update_user_admin_status(user_id):
+    if not current_user.is_admin:
+        abort(403)  # Only admins can update admin status
+
+    user = User.query.get_or_404(user_id)
+    # Update admin status based on form input
+    user.is_admin = 'is_admin' in request.form
+    db.session.commit()
+    flash(f'Admin status for {user.username} updated successfully!', 'success')
     return redirect(url_for('manage_data'))
 
-
-from werkzeug.utils import secure_filename
-import os
 
 @app.route('/sell', methods=['GET', 'POST'])
 @login_required
@@ -238,7 +302,6 @@ def sell():
     return render_template('sell.html', categories=categories)
 
 
-
 @app.route('/category/<int:category_id>')
 def category(category_id):
     category = Category.query.get_or_404(category_id)
@@ -256,36 +319,93 @@ def listing_details(listing_id):
 def load_categories():
     g.categories = Category.query.all()
 
-@app.route('/messages')
+# @app.route('/messages')
+# @login_required
+# def messages():
+#     received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
+#     sent_messages = Message.query.filter_by(sender_id=current_user.id).order_by(Message.timestamp.desc()).all()
+#     return render_template('messages.html', received_messages=received_messages, sent_messages=sent_messages)
+
+# @app.route('/messages/send', methods=['GET', 'POST'])
+# @login_required
+# def send_message():
+#     if request.method == 'POST':
+#         recipient_username = request.form['recipient']
+#         content = request.form['content']
+        
+#         recipient = User.query.filter_by(username=recipient_username).first()
+#         if not recipient:
+#             flash('User not found.', 'danger')
+#             return redirect(url_for('send_message'))
+        
+#         if recipient.id == current_user.id:
+#             flash('You cannot send a message to yourself.', 'danger')
+#             return redirect(url_for('send_message'))
+
+#         message = Message(sender_id=current_user.id, recipient_id=recipient.id, content=content)
+#         db.session.add(message)
+#         db.session.commit()
+#         flash('Message sent successfully!', 'success')
+#         return redirect(url_for('messages'))
+
+#     return render_template('send_message.html')
+
+
+@app.route('/api/messages', methods=['GET'])
 @login_required
 def messages():
     received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
     sent_messages = Message.query.filter_by(sender_id=current_user.id).order_by(Message.timestamp.desc()).all()
-    return render_template('messages.html', received_messages=received_messages, sent_messages=sent_messages)
 
-@app.route('/messages/send', methods=['GET', 'POST'])
+    app.logger.info(f"Received Messages Count: {len(received_messages)}")
+    app.logger.info(f"Sent Messages Count: {len(sent_messages)}")
+
+    return jsonify({
+        'received_messages': [
+            {'id': msg.id, 'sender': msg.sender.username, 'content': msg.content, 'timestamp': msg.timestamp.isoformat()}
+            for msg in received_messages
+        ],
+        'sent_messages': [
+            {'id': msg.id, 'recipient': msg.recipient.username, 'content': msg.content, 'timestamp': msg.timestamp.isoformat()}
+            for msg in sent_messages
+        ]
+    })
+
+
+@app.route('/api/messages/send', methods=['POST'])
 @login_required
 def send_message():
-    if request.method == 'POST':
-        recipient_username = request.form['recipient']
-        content = request.form['content']
-        
-        recipient = User.query.filter_by(username=recipient_username).first()
-        if not recipient:
-            flash('User not found.', 'danger')
-            return redirect(url_for('send_message'))
-        
-        if recipient.id == current_user.id:
-            flash('You cannot send a message to yourself.', 'danger')
-            return redirect(url_for('send_message'))
+    data = request.json
+    recipient_username = data.get('recipient')
+    content = data.get('content')
 
+    if not recipient_username or not content:
+        return jsonify({'error': 'Recipient and content are required.'}), 400
+
+    recipient = User.query.filter_by(username=recipient_username).first()
+    if not recipient:
+        return jsonify({'error': 'User not found.'}), 404
+
+    if recipient.id == current_user.id:
+        return jsonify({'error': 'You cannot send a message to yourself.'}), 400
+
+    try:
         message = Message(sender_id=current_user.id, recipient_id=recipient.id, content=content)
         db.session.add(message)
         db.session.commit()
-        flash('Message sent successfully!', 'success')
-        return redirect(url_for('messages'))
+        app.logger.info(f"Message saved: {message}")
+        return jsonify({'success': True, 'message': 'Message sent successfully!'})
+    except Exception as e:
+        app.logger.error(f"Error saving message: {e}")
+        return jsonify({'error': 'Failed to send message.'}), 500
 
-    return render_template('send_message.html')
+
+@app.route('/messages')
+@login_required
+def messages_view():
+    """Render the messages page."""
+    return render_template('messages.html')
+
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
@@ -300,6 +420,7 @@ def search():
         ).all()
 
     return render_template('search.html', query=query, results=results)
+
 
 @app.route('/favorites/toggle', methods=['POST'])
 @login_required
@@ -319,12 +440,14 @@ def toggle_favorite():
         db.session.commit()
         return jsonify({'message': 'Item added to favorites', 'favorited': True}), 200
 
+
 @app.route('/favorites', methods=['GET'])
 @login_required
 def favorites_page():
     # Fetch all favorite items for the current user
     favorites = current_user.favorites.all()  # Using lazy='dynamic' allows this query
     return render_template('favorites.html', favorites=favorites)
+
 
 @app.route('/logout')
 @login_required

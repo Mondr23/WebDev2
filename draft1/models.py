@@ -33,19 +33,15 @@ class Listing(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    image_file = db.Column(db.String(50), nullable=True, default='default.jpg')  # Optional: Main image
+    image_file = db.Column(db.String(50), nullable=True, default='default.jpg') 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-
-    # New fields for specifications
     make = db.Column(db.String(50), nullable=True)
     model = db.Column(db.String(50), nullable=True)
     year = db.Column(db.Integer, nullable=True)
-    mileage = db.Column(db.Integer, nullable=True)  # In kilometers
+    mileage = db.Column(db.Integer, nullable=True)  
     fuel_type = db.Column(db.String(50), nullable=True)
     transmission = db.Column(db.String(50), nullable=True)
-
-    # New fields for contact and location
     location = db.Column(db.String(255), nullable=True)
     contact_number = db.Column(db.String(20), nullable=True)
 
@@ -85,5 +81,5 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    sender = db.relationship('User', foreign_keys=[sender_id], backref='messages_sent')
-    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='messages_received')
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')

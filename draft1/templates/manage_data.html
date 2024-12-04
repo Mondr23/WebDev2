@@ -51,7 +51,7 @@
 
     <div class="container mt-4">
         <h1 class="text-center mb-4">Manage Data</h1>
-    
+
         <!-- Tabs for Switching Between Tables -->
         <ul class="nav nav-tabs mt-4" id="dataTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -67,13 +67,13 @@
                 </button>
             </li>
         </ul>
-    
+
         <!-- Tab Content -->
         <div class="tab-content mt-4" id="dataTabsContent">
             <!-- Users Table -->
             <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
                 <h2 class="mb-3">Users</h2>
-    
+
                 <!-- Search and Filter -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <input type="text" class="form-control w-50" placeholder="Search by username or email">
@@ -85,7 +85,7 @@
                         </select>
                     </div>
                 </div>
-    
+
                 <table class="table table-hover table-responsive">
                     <thead class="table-light">
                         <tr>
@@ -103,17 +103,26 @@
                             <td>{{ user.id }}</td>
                             <td>{{ user.username }}</td>
                             <td>{{ user.email }}</td>
-                            <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
+                            <!-- <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
+                            <td>{{ 'Yes' if user.is_active else 'No' }}</td> -->
+                            <td>
+                                <!-- Admin Checkbox Form -->
+                                <form action="{{ url_for('update_user_admin_status', user_id=user.id) }}" method="POST">
+                                    <input type="checkbox" name="is_admin" value="1" 
+                                           onchange="this.form.submit()" {% if user.is_admin %}checked{% endif %}>
+                                </form>
+                            </td>
                             <td>{{ 'Yes' if user.is_active else 'No' }}</td>
                             <td>
                                 <div class="d-flex">
-                                    <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm me-2">
+                                    <a href="{{ url_for('edit_user', user_id=user.id) }}"
+                                        class="btn btn-warning btn-sm me-2">
                                         <i class="bi bi-pencil-square"></i> Edit
                                     </a>
-                                    <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this user?')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </a>
+                                    <!-- Delete Button -->
+                                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -121,11 +130,9 @@
                     </tbody>
                 </table>
             </div>
-    
+
             <!-- Listings Section -->
             <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
-                <h2 class="text-center mb-4">Featured Listings</h2>
-    
                 <div class="row g-3">
                     {% for listing in listings %}
                     <div class="col-lg-4 col-md-6 col-sm-12">
@@ -134,31 +141,28 @@
                             <div class="position-relative">
                                 <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}"
                                     class="card-img-top" alt="{{ listing.title }}">
-                                <div class="badge bg-success position-absolute top-0 end-0 m-2">${{ listing.price }}</div>
+                                <div class="badge bg-success position-absolute top-0 end-0 m-2">${{ listing.price }}
+                                </div>
                             </div>
-    
+
                             <!-- Card Body -->
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title">{{ listing.title }}</h5>
                                 <p class="card-text text-muted flex-grow-1">{{ listing.description[:100] }}...</p>
-                                <span class="text-muted">Owner: {{ listing.owner.username }} (ID: {{ listing.owner.id }})</span>
-    
+                                <span class="text-muted">Owner: {{ listing.owner.username }} (ID: {{ listing.owner.id
+                                    }})</span>
+
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     <a href="{{ url_for('listing_details', listing_id=listing.id) }}"
                                         class="btn btn-primary btn-sm">
                                         <i class="bi bi-eye"></i> View Details
                                     </a>
-                                    <div>
-                                        <a href="{{ url_for('edit_listing', listing_id=listing.id) }}"
-                                            class="btn btn-warning btn-sm me-2">
-                                            <i class="bi bi-pencil-square"></i> Edit
-                                        </a>
-                                        <a href="{{ url_for('delete_listing', listing_id=listing.id) }}"
-                                            class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Are you sure you want to delete this listing?')">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </a>
-                                    </div>
+                                    <!-- Delete Button -->
+                                    <form action="{{ url_for('delete_listing', listing_id=listing.id) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+
                                 </div>
                             </div>
                         </div>
@@ -168,7 +172,7 @@
             </div>
         </div>
     </div>
-    
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -177,7 +181,7 @@
 </html>
 
 <!-- Listings Table -->
-            <!-- <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
+<!-- <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
                 <h2>Listings</h2>
                 <table class="table table-striped">
                     <thead>
@@ -205,4 +209,4 @@
                     </tbody>
                 </table>
             </div> -->
-            <!-- Listings Section -->
+<!-- Listings Section -->

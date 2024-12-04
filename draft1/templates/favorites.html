@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}My Favorites{% endblock %}
-
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">My Favorites</h1>
@@ -36,7 +34,6 @@
 </div>
 
 <script>
-    // Unfavorite button functionality
     document.addEventListener('DOMContentLoaded', () => {
         const unfavoriteButtons = document.querySelectorAll('.btn-unfavorite');
 
@@ -55,10 +52,8 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Remove the item from the DOM
                     button.closest('.col-md-4').remove();
 
-                    // Show a success message (optional)
                     if (document.querySelectorAll('.col-md-4').length === 0) {
                         document.querySelector('.container').innerHTML = `
                             <div class="alert alert-info text-center" role="alert">

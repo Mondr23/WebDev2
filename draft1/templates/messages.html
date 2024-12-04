@@ -3,68 +3,126 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row">
+        <!-- Contacts Sidebar -->
         <div class="col-lg-3">
             <h3 class="mb-4">Contacts</h3>
-            <!-- Contact List -->
-            <ul class="list-group shadow-sm">
-                {% for message in received_messages %}
-                <li class="list-group-item d-flex align-items-center">
-                    <div class="avatar me-3">
-                        <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
-                    </div>
-                    <div>
-                        <h6 class="mb-0">{{ message.sender.username }}</h6>
-                        <small class="text-muted">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
-                    </div>
-                </li>
-                {% endfor %}
+            <ul id="contactsList" class="list-group shadow-sm">
+                <!-- Contacts will be dynamically loaded here -->
             </ul>
         </div>
+
+        <!-- Messages Section -->
         <div class="col-lg-9">
             <h3 class="mb-4">Messages</h3>
-            <!-- Messages -->
-            <div class="messages-container border rounded shadow-sm p-3 bg-light">
-                {% for message in received_messages %}
-                <div class="message mb-4">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar me-3">
-                            <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
-                        </div>
-                        <h6 class="mb-0">{{ message.sender.username }}</h6>
-                        <small class="text-muted ms-auto">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
-                    </div>
-                    <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
-                        {{ message.content }}
-                    </div>
-                </div>
-                {% endfor %}
-                {% if not received_messages %}
-                <p class="text-muted text-center">No received messages.</p>
-                {% endif %}
+            <div id="receivedMessages" class="messages-container border rounded shadow-sm p-3 bg-light">
+                <!-- Received messages will be dynamically loaded here -->
             </div>
 
             <h3 class="mt-5">Sent Messages</h3>
-            <!-- Sent Messages -->
-            <div class="messages-container border rounded shadow-sm p-3 bg-light">
-                {% for message in sent_messages %}
-                <div class="message mb-4">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar me-3">
-                            <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
-                        </div>
-                        <h6 class="mb-0">To: {{ message.recipient.username }}</h6>
-                        <small class="text-muted ms-auto">{{ message.timestamp.strftime('%b %d, %H:%M') }}</small>
-                    </div>
-                    <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
-                        {{ message.content }}
-                    </div>
-                </div>
-                {% endfor %}
-                {% if not sent_messages %}
-                <p class="text-muted text-center">No sent messages.</p>
-                {% endif %}
+            <div id="sentMessages" class="messages-container border rounded shadow-sm p-3 bg-light">
+                <!-- Sent messages will be dynamically loaded here -->
             </div>
+
+            <!-- Send Message Form -->
+            <h3 class="mt-5">Send a Message</h3>
+            <form id="sendMessageForm" class="mt-3">
+                <div class="mb-3">
+                    <label for="recipient" class="form-label">Recipient Username</label>
+                    <input type="text" id="recipient" name="recipient" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">Message</label>
+                    <textarea id="content" name="content" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+// Utility function for creating HTML elements
+function createMessageHTML({ sender, recipient, content, timestamp }, isReceived = true) {
+    const recipientLabel = isReceived ? sender : `To: ${recipient}`;
+    return `
+        <div class="message mb-4">
+            <div class="d-flex align-items-center">
+                <div class="avatar me-3">
+                    <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
+                </div>
+                <h6 class="mb-0">${recipientLabel}</h6>
+                <small class="text-muted ms-auto">${new Date(timestamp).toLocaleString()}</small>
+            </div>
+            <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
+                ${content}
+            </div>
+        </div>`;
+}
+
+// Populate a message container with messages
+function populateMessages(containerId, messages, isReceived = true) {
+    const container = document.getElementById(containerId);
+    if (!messages.length) {
+        container.innerHTML = `<p class="text-muted text-center">${isReceived ? 'No received messages.' : 'No sent messages.'}</p>`;
+        return;
+    }
+    container.innerHTML = messages.map(msg => createMessageHTML(msg, isReceived)).join('');
+}
+
+// Fetch messages from the API
+async function fetchMessages() {
+    try {
+        const response = await fetch('/api/messages');
+        if (!response.ok) throw new Error(`Error fetching messages: ${response.statusText}`);
+
+        const { received_messages, sent_messages } = await response.json();
+
+        // Populate both received and sent message containers
+        populateMessages('receivedMessages', received_messages, true);
+        populateMessages('sentMessages', sent_messages, false);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        alert('Failed to load messages. Please try again later.');
+    }
+}
+
+// Send a message through the API
+async function sendMessage(event) {
+    event.preventDefault();
+
+    const recipient = document.getElementById('recipient').value.trim();
+    const content = document.getElementById('content').value.trim();
+
+    if (!recipient || !content) {
+        alert('Recipient and message content cannot be empty.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/messages/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipient, content }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            await fetchMessages(); // Refresh messages after successful send
+            document.getElementById('sendMessageForm').reset(); // Clear form
+        } else {
+            alert(result.error || 'Failed to send the message.');
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        alert('An error occurred while sending the message. Please try again.');
+    }
+}
+
+// Initialize the page by fetching messages and setting up the form handler
+document.addEventListener('DOMContentLoaded', () => {
+    fetchMessages(); // Load messages on page load
+    document.getElementById('sendMessageForm').addEventListener('submit', sendMessage);
+});
+</script>
 {% endblock %}

@@ -1,0 +1,62 @@
+/* General */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(180deg, #f5f7fa, #c3cfe2);
+    color: #333;
+}
+
+/* Navbar */
+.glass-navbar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.nav-link:hover {
+    color: #007bff;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.btn-register {
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+    color: white;
+    font-weight: bold;
+    border-radius: 20px;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(180deg, rgba(106, 17, 203, 0.2), rgba(37, 117, 252, 0.2)), url('hero-bg.jpg');
+    background-size: cover;
+    border-radius: 20px;
+    color: white;
+}
+
+.text-gradient {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Listings */
+.card {
+    transition: transform 0.3s ease;
+    border-radius: 20px;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card .price {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Footer */
+footer {
+    background: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}

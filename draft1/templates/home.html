@@ -1,34 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <!-- Hero Section -->
-    <div class="hero-section text-center py-5">
-        <h1 class="display-4 fw-bold text-black">Welcome to SOOQ</h1>
-        <p class="lead text-black">Find the best deals on Cars, Properties, Animals, and more!</p>
-    </div>
-
-    <!-- Listings Section -->
-    <div id="listings" class="listings-section py-5">
-        <h2 class="text-center mb-4">Featured Listings</h2>
-        <div class="row">
-            {% for listing in listings %}
-            <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
-                <div class="card listing-card shadow h-100">
-                    <div class="listing-img-wrapper">
-                        <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="{{ listing.title }}">
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ listing.title }}</h5>
-                        <p class="card-text text-muted flex-grow-1">{{ listing.description[:100] }}...</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="price-tag">${{ listing.price }}</span>
-                            <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-primary btn-details">View Details</a>
-                        </div>
+<div class="hero text-center py-5">
+    <h1 class="display-4 text-gradient">Welcome to SOOQ</h1>
+    <p class="lead">Find the best deals on Cars, Properties, and more!</p>
+    <a href="{{ url_for('sell') }}" class="btn btn-primary btn-lg mt-4 rounded-pill">Sell Now</a>
+</div>
+<div class="listings mt-5">
+    <h2 class="text-center">Featured Listings</h2>
+    <div class="row mt-4">
+        {% for listing in listings %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top rounded-top" alt="{{ listing.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ listing.title }}</h5>
+                    <p class="card-text text-muted">{{ listing.description[:100] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="price">${{ listing.price }}</span>
+                        <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-primary rounded-pill">Details</a>
                     </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

@@ -1,11 +1,109 @@
-<form method="POST" action="">
-    <div class="mb-3">
-        <label for="title" class="form-label">Title</label>
-        <input type="text" name="title" class="form-control" value="{{ listing.title }}" required>
+{% extends 'base.html' %}
+{% block title %}Edit Listing{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="text-center mb-4">Edit Your Car Listing</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Car Title -->
+            <div class="mb-3">
+                <label for="title" class="form-label">Car Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the car title" value="{{ listing.title }}" required>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Provide a detailed description" required>{{ listing.description }}</textarea>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+                <label for="price" class="form-label">Price ($)</label>
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter the price" value="{{ listing.price }}" required>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category_id" required>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id == listing.category_id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Specifications -->
+            <div class="mb-3">
+                <label for="make" class="form-label">Make</label>
+                <input type="text" class="form-control" id="make" name="make" placeholder="Enter the car make" value="{{ listing.make }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="model" class="form-label">Model</label>
+                <input type="text" class="form-control" id="model" name="model" placeholder="Enter the car model" value="{{ listing.model }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="year" class="form-label">Year</label>
+                <input type="number" class="form-control" id="year" name="year" placeholder="Enter the car year" value="{{ listing.year }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="mileage" class="form-label">Mileage (km)</label>
+                <input type="number" class="form-control" id="mileage" name="mileage" placeholder="Enter the mileage" value="{{ listing.mileage }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="fuel_type" class="form-label">Fuel Type</label>
+                <input type="text" class="form-control" id="fuel_type" name="fuel_type" placeholder="Enter the fuel type (e.g., Petrol, Diesel)" value="{{ listing.fuel_type }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="transmission" class="form-label">Transmission</label>
+                <input type="text" class="form-control" id="transmission" name="transmission" placeholder="Enter the transmission type (e.g., Manual, Automatic)" value="{{ listing.transmission }}" required>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" name="location" placeholder="Enter your city or address" value="{{ listing.location }}" required>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="mb-3">
+                <label for="contact_number" class="form-label">Contact Number</label>
+                <input type="tel" class="form-control" id="contact_number" name="contact_number" placeholder="Enter your phone number" pattern="^\+?[0-9\s\-]+$" value="{{ listing.contact_number }}" required>
+                <small class="form-text text-muted">Include your country code if applicable (e.g., +1 234 567 8901).</small>
+            </div>
+
+            <!-- Main Image -->
+            <div class="mb-3">
+                <label class="form-label">Current Main Image</label>
+                <div>
+                    <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="img-thumbnail mb-2" style="max-width: 200px;" alt="Main Image">
+                </div>
+                <label for="main_image" class="form-label">Replace Main Image</label>
+                <input type="file" class="form-control" id="main_image" name="main_image">
+            </div>
+
+            <!-- Additional Images -->
+            <div class="mb-3">
+                <label class="form-label">Current Additional Images</label>
+                <div class="d-flex flex-wrap">
+                    {% for image in listing.additional_images %}
+                    <div class="position-relative me-2 mb-2">
+                        <img src="{{ url_for('static', filename='car-images/' + image) }}" class="img-thumbnail" style="max-width: 150px;" alt="Additional Image">
+                        <div class="position-absolute top-0 end-0">
+                            <input type="checkbox" name="delete_images" value="{{ image }}" class="form-check-input"> Delete
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <label for="additional_images" class="form-label">Upload New Additional Images</label>
+                <input type="file" class="form-control" id="additional_images" name="additional_images" multiple>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary w-100">Update Listing</button>
+        </form>
     </div>
-    <div class="mb-3">
-        <label for="price" class="form-label">Price</label>
-        <input type="number" name="price" class="form-control" value="{{ listing.price }}" step="0.01" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
+</div>
+{% endblock %}
