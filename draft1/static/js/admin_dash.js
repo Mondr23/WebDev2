@@ -1,54 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure the DOM is fully loaded before initializing the charts
+
     // Chart for Listings by Category
     const categoryCtx = document.getElementById('listingsByCategoryChart').getContext('2d');
+    // Get the context for the "Listings by Category" chart
     const listingsByCategoryChart = new Chart(categoryCtx, {
-        type: 'bar',
+        type: 'bar', // Specify the chart type as a bar chart
         data: {
-            labels: categoryLabels, // Use the variables initialized above
+            labels: categoryLabels, // Labels representing different categories
             datasets: [{
-                label: 'Number of Listings',
-                data: categoryCounts,
-                backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                label: 'Number of Listings', // Legend for the dataset
+                data: categoryCounts, // Data points for each category
+                backgroundColor: 'rgba(54, 162, 235, 0.7)', // Bar color with transparency
+                borderColor: 'rgba(54, 162, 235, 1)', // Border color for the bars
+                borderWidth: 1 // Thickness of the bar borders
             }]
         },
         options: {
-            responsive: true,
+            responsive: true, // Make the chart responsive to window size
             plugins: {
-                legend: { display: true },
-                title: { display: true, text: 'Listings by Category' }
+                legend: { display: true }, // Display the legend
+                title: { display: true, text: 'Listings by Category' } // Title for the chart
             },
             scales: {
-                x: { title: { display: true, text: 'Categories' } },
-                y: { beginAtZero: true, title: { display: true, text: 'Number of Listings' } }
+                x: { title: { display: true, text: 'Categories' } }, // Label for the x-axis
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Listings' } } // Label and range for the y-axis
             }
         }
     });
 
     // Chart for Listings by Location
     const locationCtx = document.getElementById('listingsByLocationChart').getContext('2d');
+    // Get the context for the "Listings by Location" chart
     const listingsByLocationChart = new Chart(locationCtx, {
-        type: 'bar',
+        type: 'bar', // Specify the chart type as a bar chart
         data: {
-            labels: locationLabels,
+            labels: locationLabels, // Labels representing different locations
             datasets: [{
-                label: 'Number of Listings',
-                data: locationCounts,
-                backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                borderColor: 'rgba(153, 102, 255, 1)',
-                borderWidth: 1
+                label: 'Number of Listings', // Legend for the dataset
+                data: locationCounts, // Data points for each location
+                backgroundColor: 'rgba(153, 102, 255, 0.7)', // Bar color with transparency
+                borderColor: 'rgba(153, 102, 255, 1)', // Border color for the bars
+                borderWidth: 1 // Thickness of the bar borders
             }]
         },
         options: {
-            responsive: true,
+            responsive: true, // Make the chart responsive to window size
             plugins: {
-                legend: { display: true },
-                title: { display: true, text: 'Listings by Location' }
+                legend: { display: true }, // Display the legend
+                title: { display: true, text: 'Listings by Location' } // Title for the chart
             },
             scales: {
-                x: { title: { display: true, text: 'Locations' } },
-                y: { beginAtZero: true, title: { display: true, text: 'Number of Listings' } }
+                x: { title: { display: true, text: 'Locations' } }, // Label for the x-axis
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Listings' } } // Label and range for the y-axis
             }
         }
     });

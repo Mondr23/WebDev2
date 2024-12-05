@@ -26,11 +26,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link text-light" {% if request.endpoint=='admin_page' %}aria-current="page" {% endif %}
+                        <a class="nav-link text-dark" {% if request.endpoint=='admin_page' %}aria-current="page" {% endif %}
                             href="{{ url_for('admin_page') }}"> <i class="bi bi-house me-1" aria-hidden="true"></i>Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-light" {% if request.endpoint=='manage_data' %}aria-current="page" {% endif %}
+                        <a class="nav-link text-dark" {% if request.endpoint=='manage_data' %}aria-current="page" {% endif %}
                             href="{{ url_for('manage_data') }}"> <i class="bi bi-database-fill me-1" aria-hidden="true"></i>Manage Data</a>
                     </li>
                     <li class="nav-item dropdown">
@@ -65,7 +65,7 @@
         <div class="container">
             <div class="row text-center text-md-start">
                 <div class="col-md-4">
-                    <h5 class="fw-bold text-white" aria-label="SOOQ Footer">
+                    <h5 class="fw-bold text-dark" aria-label="SOOQ Footer">
                         <i class="bi bi-shop me-2 text-highlight" aria-hidden="true"></i>SOOQ
                     </h5>
                 </div>

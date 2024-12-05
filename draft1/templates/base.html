@@ -24,12 +24,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link text-light" href="{{ url_for('home') }}" aria-label="Home">
+                        <a class="nav-link text-dark" href="{{ url_for('home') }}" aria-label="Home">
                             <i class="bi bi-house" aria-hidden="true"></i> Home
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-light" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Categories">
+                        <a class="nav-link dropdown-toggle text-dark" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Categories">
                             Categories
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
@@ -39,7 +39,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-light" href="#" id="brandsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Brands">
+                        <a class="nav-link dropdown-toggle text-dark" href="#" id="brandsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Brands">
                             Brands
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
@@ -51,14 +51,14 @@
                     <li class="nav-item">
                         <form class="d-flex ms-lg-3" method="GET" action="{{ url_for('search') }}" role="search" aria-label="Search">
                             <input class="form-control search-input rounded-pill" type="search" name="query" placeholder="Search" aria-label="Search input">
-                            <button class="btn btn-outline-light rounded-pill ms-2" type="submit">Search</button>
+                            <button class="btn btn-outline-dark rounded-pill ms-2" type="submit">Search</button>
                         </form>
                     </li>
                 </ul>
                 <div class="ms-4">
                     {% if current_user.is_authenticated %}
                         <div class="dropdown">
-                            <a href="#" class="nav-link dropdown-toggle text-light" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User Menu">
+                            <a href="#" class="nav-link dropdown-toggle text-dark" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User Menu">
                                 <i class="bi bi-person-circle" aria-hidden="true"></i> {{ current_user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -69,7 +69,7 @@
                             </ul>
                         </div>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-light rounded-pill me-2">Login</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-dark rounded-pill me-2">Login</a>
                         <a href="{{ url_for('register') }}" class="btn btn-accent rounded-pill">Sign Up</a>
                     {% endif %}
                 </div>
@@ -87,7 +87,7 @@
         <div class="container">
             <div class="row text-center text-md-start">
                 <div class="col-md-4">
-                    <h5 class="fw-bold text-white" aria-label="SOOQ Footer">
+                    <h5 class="fw-bold text-dark" aria-label="SOOQ Footer">
                         <i class="bi bi-shop me-2 text-highlight" aria-hidden="true"></i>SOOQ
                     </h5>
                 </div>

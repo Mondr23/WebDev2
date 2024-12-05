@@ -1,7 +1,12 @@
-Flask==2.3.2
+Flask==2.3.0
 Flask-Login==0.6.2
-Flask-SQLAlchemy==3.0.5
-Werkzeug==2.3.3
+Flask-SQLAlchemy==3.0.0
+Flask-WTF==1.0.1  # Optional, if you use FlaskForm for forms
+SQLAlchemy==2.0.0
+Werkzeug==2.3.0
 Jinja2==3.1.2
 itsdangerous==2.1.2
-SQLAlchemy==2.0.21
+WTForms==3.0.1
+email-validator==1.2.1  # Required by WTForms for email validation
+bcrypt==4.0.1  # For password hashing
+gunicorn==20.1.0  # For deployment
