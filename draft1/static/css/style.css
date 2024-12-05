@@ -98,12 +98,4 @@ body {
     font-size: 0.9rem;
 }
 
-.footer a {
-    color: var(--highlight-color);
-    text-decoration: none;
-    transition: color 0.3s;
-}
 
-.footer a:hover {
-    color: #f4a261;
-}

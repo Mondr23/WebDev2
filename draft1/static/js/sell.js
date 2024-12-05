@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         previewContainer.className = 'mt-3 d-flex flex-wrap gap-2';
         const files = event.target.files;
 
+        // Generate image previews
         [...files].forEach((file) => {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -21,13 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
         event.target.parentElement.appendChild(previewContainer);
     });
 
-    // Autofill Location using Geolocation
+    // Autofill Location
     const locationInput = document.getElementById('location');
     locationInput.addEventListener('focus', () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
+
+                    // Fetch location details using geocoding API
                     fetch(`https://geocode.xyz/${latitude},${longitude}?geoit=json`)
                         .then((response) => response.json())
                         .then((data) => {

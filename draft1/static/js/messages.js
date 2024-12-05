@@ -20,14 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchMessages() {
         try {
             const response = await fetch('/api/messages'); 
-            // Fetch messages from the API endpoint
             const { received_messages, sent_messages } = await response.json(); 
-            // Destructure received and sent messages from the response JSON
 
             populateMessages(receivedMessagesContainer, received_messages, true); 
-            // Populate received messages into the container
             populateMessages(sentMessagesContainer, sent_messages, false); 
-            // Populate sent messages into the container
         } catch (err) {
             console.error('Error fetching messages:', err); 
             // Log errors to the console
@@ -57,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${
                             isReceived
                                 ? `<button class="btn btn-link reply-btn" data-id="${msg.id}" data-content="${msg.content}">Reply</button>` 
-                                // Add a reply button for received messages
                                 : ''
                         }
                     </div>
@@ -73,17 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exit if the clicked element is not a reply button
 
         replyToMessageId = e.target.dataset.id; 
-        // Get the ID of the message being replied to
         replyMessagePreview.textContent = `Replying to: "${e.target.dataset.content}"`; 
-        // Set the preview content for the reply modal
         replyModal.show(); 
-        // Show the reply modal
     });
 
     // Send a reply
     sendReplyBtn.addEventListener('click', async () => {
         const content = replyMessageContent.value.trim(); 
-        // Get the trimmed content from the reply textarea
         if (!content || !replyToMessageId) return; 
         // Exit if content is empty or no message ID is set
 
@@ -95,11 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Send the reply content and message ID to the server
             });
             replyMessageContent.value = ''; 
-            // Clear the reply textarea
             replyModal.hide(); 
-            // Hide the reply modal
             fetchMessages(); 
-            // Refresh the messages to show the updated list
         } catch (err) {
             console.error('Error sending reply:', err); 
             // Log any errors during the reply request

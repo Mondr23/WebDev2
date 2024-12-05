@@ -39,13 +39,6 @@
                             <i class="bi bi-person-circle me-1" aria-hidden="true"></i>Admin Panel
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i
-                                        class="bi bi-person-fill me-1" aria-hidden="true"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('messages_view') }}"><i
-                                        class="bi bi-chat-dots-fill me-1" aria-hidden="true"></i>Messages</a></li>
-                            <li>
-                                <hr class="dropdown-divider" aria-hidden="true">
-                            </li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i
                                         class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Logout</a></li>
                         </ul>
@@ -54,6 +47,22 @@
             </div>
         </div>
     </nav>
+
+    <!-- Flash Notifications -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
 
     <!-- Main Content -->
     <main role="main">

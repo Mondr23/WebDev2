@@ -1,4 +1,3 @@
-// JavaScript file for custom interactions and functionality
 
 // Smooth scrolling for anchor links
 document.addEventListener("DOMContentLoaded", function () {
@@ -24,32 +23,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Example: AJAX request for favoriting a listing (requires a corresponding backend route)
-function favoriteListing(listingId) {
-    fetch(`/favorite/${listingId}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken()
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Listing added to favorites!");
-        } else {
-            alert("Failed to add listing to favorites.");
-        }
-    })
-    .catch(error => console.error("Error:", error));
-}
 
-// Utility: Get CSRF token from meta tag
-function getCSRFToken() {
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    return meta ? meta.getAttribute("content") : "";
-}
 
-// Example: Confirm before deleting a listing
+//Confirm before deleting a listing
 function confirmDelete(listingId) {
     const confirmed = confirm("Are you sure you want to delete this listing?");
     if (confirmed) {
@@ -71,17 +47,4 @@ function confirmDelete(listingId) {
     }
 }
 
-// Real-time character count for textarea fields (e.g., message form)
-document.addEventListener("DOMContentLoaded", function () {
-    const textareas = document.querySelectorAll("textarea[maxlength]");
-    textareas.forEach(textarea => {
-        const maxLength = textarea.getAttribute("maxlength");
-        const counter = document.createElement("small");
-        counter.textContent = `0 / ${maxLength} characters`;
-        textarea.parentNode.appendChild(counter);
 
-        textarea.addEventListener("input", function () {
-            counter.textContent = `${textarea.value.length} / ${maxLength} characters`;
-        });
-    });
-});

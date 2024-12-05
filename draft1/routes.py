@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify, abort
+from flask import render_template, redirect, url_for, flash, request, jsonify, abort, session, has_request_context
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,6 +18,7 @@ def home():
 
 
 # View: Login
+# View: Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login."""
@@ -26,7 +27,7 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
 
-        # Verify user credentials
+        # Verify user info
         if user and check_password_hash(user.password, password):
             user.is_active = True
             db.session.commit()
@@ -36,6 +37,16 @@ def login():
         flash('Login unsuccessful. Please check email and password.', 'danger')
 
     return render_template('login.html')
+
+# View: Logout
+@app.route('/logout')
+@login_required
+def logout():
+    """Handle user logout."""
+    current_user.is_active = False
+    db.session.commit()
+    logout_user()
+    return redirect(url_for('home'))
 
 
 # View: Register
@@ -66,7 +77,6 @@ def profile():
         user_listings = Listing.query.filter_by(user_id=current_user.id).all()
         return render_template('profile.html', user=current_user, user_listings=user_listings)
 
-    flash('Please log in to access your profile.', 'danger')
     return redirect(url_for('login'))
 
 
@@ -125,26 +135,6 @@ def manage_data():
     return render_template('manage_data.html', users=users, listings=listings)
 
 
-# View: Edit User
-@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
-@login_required
-def edit_user(user_id):
-    """Edit user details."""
-    if not current_user.is_admin:
-        abort(403)
-
-    user = User.query.get_or_404(user_id)
-    if request.method == 'POST':
-        user.username = request.form.get('username')
-        user.email = request.form.get('email')
-        user.is_admin = 'is_admin' in request.form
-        db.session.commit()
-        flash('User updated successfully!', 'success')
-        return redirect(url_for('manage_data'))
-
-    return render_template('edit_user.html', user=user)
-
-
 # View: Delete User
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
@@ -167,9 +157,8 @@ def edit_listing(listing_id):
     """Edit a listing."""
     listing = Listing.query.get_or_404(listing_id)
 
-    # Ensure only the owner or an admin can edit
-    if listing.user_id != current_user.id and not current_user.is_admin:
-        abort(403)
+    # Ensure only the owner 
+    if listing.user_id != current_user.id:abort(403)
 
     if request.method == 'POST':
         # Update listing details
@@ -340,7 +329,7 @@ def sell():
                 db.session.add(listing_image)
 
         db.session.commit()
-        flash('Your listing has been posted with images!', 'success')
+        flash('Your listing has been posted!', 'success')
         return redirect(url_for('home'))
 
     categories = Category.query.all()
@@ -562,45 +551,3 @@ def messages_view():
     Returns the messages.html template.
     """
     return render_template('messages.html')
-
-
-# Additional Utility (Optional): For better debugging and data analysis
-@app.route('/api/messages/all', methods=['GET'])
-@login_required
-def get_all_messages():
-    """
-    Admin view: Retrieve all messages for debugging or analytics purposes.
-    
-    Returns a list of all messages in JSON format.
-    """
-    if not current_user.is_admin:  # Assuming User model has an is_admin field
-        return jsonify({'error': 'Unauthorized access.'}), 403
-
-    messages = Message.query.order_by(Message.timestamp.desc()).all()
-    return jsonify([
-        {
-            'id': msg.id,
-            'sender': msg.sender.username,
-            'recipient': msg.recipient.username,
-            'content': msg.content,
-            'timestamp': msg.timestamp.isoformat(),
-            'parent_id': msg.parent_id
-        }
-        for msg in messages
-    ])
-
-
-# User Logout
-@app.route('/logout')
-@login_required
-def logout():
-    """
-    Logout the current user and redirect to the home page.
-    
-    Marks the user as inactive and calls the logout_user function.
-    """
-    if current_user.is_authenticated:  # Ensure a user is logged in
-        current_user.is_active = False  # Mark user as inactive
-        db.session.commit()
-    logout_user()  # Log out the user
-    return redirect(url_for('home'))
