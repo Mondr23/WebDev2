@@ -1,75 +1,80 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, jsonify, abort
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
-import os
-from app import app, db
-from models import User, Message, Category, Listing, user_favorites,  ListingImage
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import g
-from models import Category
-from flask import abort
-from flask import request, jsonify
-from flask_login import logout_user, current_user, login_required
+from models import User, Message, Category, Listing, ListingImage, Brand
+from app import app, db
 from sqlalchemy import func
-from flask import jsonify
-from werkzeug.utils import secure_filename
+from datetime import datetime
 import os
 
+# View: Home Page
 @app.route('/')
 def home():
+    """Render the home page with categories and listings."""
     categories = Category.query.all()
-    listings = Listing.query.limit(12).all()  # Fetch the first 12 listings
+    listings = Listing.query.limit(12).all()
     return render_template('home.html', categories=categories, listings=listings)
 
 
+# View: Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handle user login."""
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
-        user.is_active = True
-        db.session.commit()
+
+        # Verify user credentials
         if user and check_password_hash(user.password, password):
+            user.is_active = True
+            db.session.commit()
             login_user(user)
-            if user.is_admin:  # Redirect admins to admin dashboard
-                return redirect(url_for('admin_page'))
-            return redirect(url_for('home'))  # Redirect non-admins to home
+            return redirect(url_for('admin_page' if user.is_admin else 'home'))
+
         flash('Login unsuccessful. Please check email and password.', 'danger')
+
     return render_template('login.html')
 
 
+# View: Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """Handle user registration."""
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        hashed_password = generate_password_hash(password, method='scrypt')  # Use scrypt
+        hashed_password = generate_password_hash(password, method='scrypt')  # Use scrypt for hashing
+
         new_user = User(username=username, email=email, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
+
     return render_template('register.html')
 
 
+# View: Profile
 @app.route('/profile')
 def profile():
-     # Get the current user's listings
-    user_listings = Listing.query.filter_by(user_id=current_user.id).all()
+    """Render user profile with listings."""
     if current_user.is_authenticated:
+        user_listings = Listing.query.filter_by(user_id=current_user.id).all()
         return render_template('profile.html', user=current_user, user_listings=user_listings)
-    else:
-        flash('Please log in to access your profile.', 'danger')
-        return redirect(url_for('login'))
-    
+
+    flash('Please log in to access your profile.', 'danger')
+    return redirect(url_for('login'))
 
 
-
+# View: Admin Page
 @app.route('/admin_page')
 @login_required
 def admin_page():
+    """Render admin dashboard."""
     if not current_user.is_admin:
         flash("Access denied.", "danger")
         return redirect(url_for('home'))
@@ -107,22 +112,24 @@ def admin_page():
     )
 
 
+# View: Manage Data
 @app.route('/manage_data')
 @login_required
 def manage_data():
+    """Render data management view for admins."""
     if not current_user.is_admin:
-        abort(403)  # Restrict access to admins only
+        abort(403)
 
-    # Fetch data for users and listings
     users = User.query.all()
     listings = Listing.query.all()
-
     return render_template('manage_data.html', users=users, listings=listings)
 
 
+# View: Edit User
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(user_id):
+    """Edit user details."""
     if not current_user.is_admin:
         abort(403)
 
@@ -138,49 +145,39 @@ def edit_user(user_id):
     return render_template('edit_user.html', user=user)
 
 
+# View: Delete User
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
+    """Delete a user."""
     if not current_user.is_admin:
         abort(403)
 
+    user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
     flash('User deleted successfully!', 'success')
     return redirect(url_for('manage_data'))
 
 
-
-    if not current_user.is_admin:
-        abort(403)
-
-    listing = Listing.query.get_or_404(listing_id)
-    if request.method == 'POST':
-        listing.title = request.form.get('title')
-        listing.price = request.form.get('price')
-        db.session.commit()
-        flash('Listing updated successfully!', 'success')
-        return redirect(url_for('manage_data'))
-
-    return render_template('edit_listing.html', listing=listing)
-
+# View: Edit Listing
 @app.route('/edit/<int:listing_id>', methods=['GET', 'POST'])
 @login_required
 def edit_listing(listing_id):
+    """Edit a listing."""
     listing = Listing.query.get_or_404(listing_id)
 
-    # Ensure only the owner can edit
-    if listing.user_id != current_user.id:
+    # Ensure only the owner or an admin can edit
+    if listing.user_id != current_user.id and not current_user.is_admin:
         abort(403)
 
     if request.method == 'POST':
-        # Update the listing with new data
+        # Update listing details
         listing.title = request.form['title']
         listing.description = request.form['description']
         listing.price = request.form['price']
         listing.category_id = request.form['category_id']
-        listing.make = request.form['make']
+        listing.brand_id = int(request.form['brand_id'])
         listing.model = request.form['model']
         listing.year = request.form['year']
         listing.mileage = request.form['mileage']
@@ -189,15 +186,12 @@ def edit_listing(listing_id):
         listing.location = request.form['location']
         listing.contact_number = request.form['contact_number']
 
-        # Handle file uploads (if provided)
+        # Handle file uploads
         if 'image' in request.files and request.files['image'].filename != '':
-            image_file = save_image(request.files['image'])  # Replace with your image-saving logic
+            image_file = secure_filename(request.files['image'].filename)
+            request.files['image'].save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
             listing.image_file = image_file
 
-        if 'images' in request.files:
-            additional_images = save_images(request.files.getlist('images'))  # Save additional images logic
-
-        # Commit changes
         db.session.commit()
         flash('Listing updated successfully!', 'success')
         return redirect(url_for('profile'))
@@ -205,48 +199,101 @@ def edit_listing(listing_id):
     return render_template('edit_listing.html', listing=listing, categories=Category.query.all())
 
 
+# View: Delete Listing
 @app.route('/delete/<int:listing_id>', methods=['POST'])
 @login_required
 def delete_listing(listing_id):
-    # Fetch the listing to be deleted
+    """Delete a listing."""
     listing = Listing.query.get_or_404(listing_id)
 
-   # Ensure the current user owns the listing or is an admin
+    # Ensure the current user owns the listing or is an admin
     if listing.user_id != current_user.id and not current_user.is_admin:
-         abort(403)
+        abort(403)
 
-    # Delete the listing
     db.session.delete(listing)
     db.session.commit()
     flash('Listing deleted successfully!', 'success')
     return redirect(url_for('profile'))
 
+
+# View: Update User Admin Status
 @app.route('/update_user_admin_status/<int:user_id>', methods=['POST'])
 @login_required
 def update_user_admin_status(user_id):
+    """Update user admin status."""
     if not current_user.is_admin:
         abort(403)  # Only admins can update admin status
 
     user = User.query.get_or_404(user_id)
-    # Update admin status based on form input
     user.is_admin = 'is_admin' in request.form
     db.session.commit()
     flash(f'Admin status for {user.username} updated successfully!', 'success')
     return redirect(url_for('manage_data'))
 
 
+# View: Update Password
+@app.route('/update_password', methods=['POST'])
+@login_required
+def update_password():
+    """Update the current user's password."""
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+
+    if not current_user.check_password(current_password):
+        flash('Current password is incorrect.', 'danger')
+        return redirect(url_for('profile'))
+
+    current_user.set_password(new_password)
+    db.session.commit()
+    flash('Password updated successfully.', 'success')
+    return redirect(url_for('profile'))
+
+
+# View: Update Email
+@app.route('/update_email', methods=['POST'])
+@login_required
+def update_email():
+    """Update the current user's email."""
+    new_email = request.form.get('email')
+    if not new_email:
+        flash('Email cannot be empty.', 'danger')
+        return redirect(url_for('profile'))
+
+    current_user.email = new_email
+    db.session.commit()
+    flash('Email updated successfully.', 'success')
+    return redirect(url_for('profile'))
+
+
+# View: Update Username
+@app.route('/update_username', methods=['POST'])
+@login_required
+def update_username():
+    """Update the current user's username."""
+    new_name = request.form.get('username')
+    if not new_name:
+        flash('Username cannot be empty.', 'danger')
+        return redirect(url_for('profile'))
+
+    current_user.username = new_name
+    db.session.commit()
+    flash('Username updated successfully.', 'success')
+    return redirect(url_for('profile'))
+
+
+# View: Sell Listing
 @app.route('/sell', methods=['GET', 'POST'])
 @login_required
 def sell():
+    """Create a new listing."""
     if request.method == 'POST':
-        # Retrieve form data
         title = request.form['title']
         description = request.form['description']
         price = float(request.form['price'])
         category_id = int(request.form['category_id'])
 
         # Additional fields
-        make = request.form['make']
+        brand_id = int(request.form['brand_id'])
         model = request.form['model']
         year = int(request.form['year'])
         mileage = int(request.form['mileage'])
@@ -255,7 +302,7 @@ def sell():
         location = request.form['location']
         contact_number = request.form['contact_number']
 
-        # Process main image (optional)
+        # Process main image
         image = request.files['image']
         image_filename = secure_filename(image.filename)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
@@ -269,8 +316,8 @@ def sell():
             category_id=category_id,
             user_id=current_user.id,
             image_file=image_filename,
-            make=make,
             model=model,
+            brand_id=brand_id,
             year=year,
             mileage=mileage,
             fuel_type=fuel_type,
@@ -289,7 +336,6 @@ def sell():
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
                 image.save(image_path)
 
-                # Save each image to the database
                 listing_image = ListingImage(listing_id=new_listing.id, image_file=image_filename)
                 db.session.add(listing_image)
 
@@ -297,140 +343,83 @@ def sell():
         flash('Your listing has been posted with images!', 'success')
         return redirect(url_for('home'))
 
-    # Pass categories to the template
     categories = Category.query.all()
-    return render_template('sell.html', categories=categories)
+    brands = Brand.query.all()
+    return render_template('sell.html', categories=categories, brands=brands)
 
 
+# View: Category Listings
 @app.route('/category/<int:category_id>')
 def category(category_id):
+    """View listings by category."""
     category = Category.query.get_or_404(category_id)
     listings = Listing.query.filter_by(category_id=category_id).all()
     categories = Category.query.all()
     return render_template('home.html', categories=categories, listings=listings)
 
+
+# View: Brand Listings
+@app.route('/brand/<int:brand_id>')
+def brand(brand_id):
+    """View listings by brand."""
+    brand = Brand.query.get_or_404(brand_id)
+    listings = Listing.query.filter_by(brand_id=brand_id).all()
+    brands = Brand.query.all()
+    return render_template('home.html', brands=brands, listings=listings)
+
+
+# Context Processor: Load Brands
+@app.context_processor
+def load_brands():
+    """Inject brands into templates."""
+    brands = Brand.query.all()
+    return dict(brands=brands)
+
+
+# Context Processor: Load Categories
+@app.context_processor
+def load_categories():
+    """Inject categories into templates."""
+    categories = Category.query.all()
+    return dict(categories=categories)
+
+
+# View: Listing Details
 @app.route('/listing/<int:listing_id>')
 def listing_details(listing_id):
-    # Query the listing by its ID
+    """View details of a specific listing."""
     listing = Listing.query.get_or_404(listing_id)
     return render_template('details.html', listing=listing)
 
-@app.before_request
-def load_categories():
-    g.categories = Category.query.all()
 
-# @app.route('/messages')
-# @login_required
-# def messages():
-#     received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
-#     sent_messages = Message.query.filter_by(sender_id=current_user.id).order_by(Message.timestamp.desc()).all()
-#     return render_template('messages.html', received_messages=received_messages, sent_messages=sent_messages)
-
-# @app.route('/messages/send', methods=['GET', 'POST'])
-# @login_required
-# def send_message():
-#     if request.method == 'POST':
-#         recipient_username = request.form['recipient']
-#         content = request.form['content']
-        
-#         recipient = User.query.filter_by(username=recipient_username).first()
-#         if not recipient:
-#             flash('User not found.', 'danger')
-#             return redirect(url_for('send_message'))
-        
-#         if recipient.id == current_user.id:
-#             flash('You cannot send a message to yourself.', 'danger')
-#             return redirect(url_for('send_message'))
-
-#         message = Message(sender_id=current_user.id, recipient_id=recipient.id, content=content)
-#         db.session.add(message)
-#         db.session.commit()
-#         flash('Message sent successfully!', 'success')
-#         return redirect(url_for('messages'))
-
-#     return render_template('send_message.html')
-
-
-@app.route('/api/messages', methods=['GET'])
-@login_required
-def messages():
-    received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
-    sent_messages = Message.query.filter_by(sender_id=current_user.id).order_by(Message.timestamp.desc()).all()
-
-    app.logger.info(f"Received Messages Count: {len(received_messages)}")
-    app.logger.info(f"Sent Messages Count: {len(sent_messages)}")
-
-    return jsonify({
-        'received_messages': [
-            {'id': msg.id, 'sender': msg.sender.username, 'content': msg.content, 'timestamp': msg.timestamp.isoformat()}
-            for msg in received_messages
-        ],
-        'sent_messages': [
-            {'id': msg.id, 'recipient': msg.recipient.username, 'content': msg.content, 'timestamp': msg.timestamp.isoformat()}
-            for msg in sent_messages
-        ]
-    })
-
-
-@app.route('/api/messages/send', methods=['POST'])
-@login_required
-def send_message():
-    data = request.json
-    recipient_username = data.get('recipient')
-    content = data.get('content')
-
-    if not recipient_username or not content:
-        return jsonify({'error': 'Recipient and content are required.'}), 400
-
-    recipient = User.query.filter_by(username=recipient_username).first()
-    if not recipient:
-        return jsonify({'error': 'User not found.'}), 404
-
-    if recipient.id == current_user.id:
-        return jsonify({'error': 'You cannot send a message to yourself.'}), 400
-
-    try:
-        message = Message(sender_id=current_user.id, recipient_id=recipient.id, content=content)
-        db.session.add(message)
-        db.session.commit()
-        app.logger.info(f"Message saved: {message}")
-        return jsonify({'success': True, 'message': 'Message sent successfully!'})
-    except Exception as e:
-        app.logger.error(f"Error saving message: {e}")
-        return jsonify({'error': 'Failed to send message.'}), 500
-
-
-@app.route('/messages')
-@login_required
-def messages_view():
-    """Render the messages page."""
-    return render_template('messages.html')
-
-
+# View: Search Listings
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    """Search for listings."""
     query = request.args.get('query', '').strip()
     results = []
 
     if query:
-        # Perform the search
         results = Listing.query.filter(
-            Listing.title.ilike(f'%{query}%') | 
-            Listing.description.ilike(f'%{query}%')
+            Listing.title.ilike(f'%{query}%') |
+            Listing.description.ilike(f'%{query}%') |
+            Listing.location.ilike(f'%{query}%')
         ).all()
 
     return render_template('search.html', query=query, results=results)
 
 
+# View: Toggle Favorite
 @app.route('/favorites/toggle', methods=['POST'])
 @login_required
 def toggle_favorite():
+    """Toggle favorite status of a listing."""
     item_id = request.json.get('item_id')
-    item = Listing.query.get(item_id)  # Assuming Listing is your item model
+    item = Listing.query.get(item_id)
+
     if not item:
         return jsonify({'error': 'Item not found'}), 404
 
-    # Add or remove the favorite
     if item in current_user.favorites:
         current_user.favorites.remove(item)
         db.session.commit()
@@ -441,17 +430,175 @@ def toggle_favorite():
         return jsonify({'message': 'Item added to favorites', 'favorited': True}), 200
 
 
+# View: Favorites Page
 @app.route('/favorites', methods=['GET'])
 @login_required
 def favorites_page():
-    # Fetch all favorite items for the current user
-    favorites = current_user.favorites.all()  # Using lazy='dynamic' allows this query
+    """View favorite listings."""
+    favorites = current_user.favorites.all()
     return render_template('favorites.html', favorites=favorites)
 
 
+# API: Get All Messages
+@app.route('/api/messages', methods=['GET'])
+@login_required
+def messages():
+    """Get received and sent messages."""
+    received_messages = Message.query.filter_by(recipient_id=current_user.id).order_by(Message.timestamp.desc()).all()
+    sent_messages = Message.query.filter_by(sender_id=current_user.id).order_by(Message.timestamp.desc()).all()
+
+    return jsonify({
+        'received_messages': [
+            {
+                'id': msg.id,
+                'sender': msg.sender.username,
+                'content': msg.content,
+                'timestamp': msg.timestamp.isoformat(),
+                'parent_id': msg.parent_id
+            } for msg in received_messages
+        ],
+        'sent_messages': [
+            {
+                'id': msg.id,
+                'recipient': msg.recipient.username,
+                'content': msg.content,
+                'timestamp': msg.timestamp.isoformat()
+            } for msg in sent_messages
+        ]
+    })
+
+
+# API: Send a New Message
+@app.route('/api/messages/send', methods=['POST'])
+@login_required
+def send_message():
+    """
+    API endpoint to send a new message to a recipient.
+    
+    Returns a success message or an error response.
+    """
+    data = request.json
+    recipient_username = data.get('recipient')
+    content = data.get('content')
+
+    # Validation
+    if not recipient_username or not content:
+        return jsonify({'error': 'Recipient and content are required.'}), 400
+
+    recipient = User.query.filter_by(username=recipient_username).first()
+    if not recipient:
+        return jsonify({'error': 'User not found.'}), 404
+
+    if recipient.id == current_user.id:
+        return jsonify({'error': 'You cannot send a message to yourself.'}), 400
+
+    # Save the message
+    try:
+        message = Message(
+            sender_id=current_user.id,
+            recipient_id=recipient.id,
+            content=content,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(message)
+        db.session.commit()
+
+        app.logger.info(f"Message sent successfully: {message}")
+        return jsonify({'success': True, 'message': 'Message sent successfully!'})
+    except Exception as e:
+        app.logger.error(f"Error saving message: {e}")
+        return jsonify({'error': 'Failed to send message.'}), 500
+
+
+# API: Reply to a Message
+@app.route('/api/messages/reply', methods=['POST'])
+@login_required
+def reply_to_message():
+    """
+    API endpoint to reply to an existing message.
+    
+    Returns a success message or an error response.
+    """
+    data = request.json
+    parent_message_id = data.get('message_id')
+    content = data.get('content')
+
+    # Validation
+    if not parent_message_id or not content:
+        return jsonify({'error': 'Parent message ID and content are required.'}), 400
+
+    parent_message = Message.query.get(parent_message_id)
+    if not parent_message:
+        return jsonify({'error': 'Parent message not found.'}), 404
+
+    # Check that the current user is the intended recipient of the parent message
+    if parent_message.recipient_id != current_user.id:
+        return jsonify({'error': 'You can only reply to messages sent to you.'}), 403
+
+    # Save the reply
+    try:
+        reply = Message(
+            sender_id=current_user.id,
+            recipient_id=parent_message.sender_id,
+            content=content,
+            parent_id=parent_message_id,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(reply)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Reply sent successfully!'})
+    except Exception as e:
+        app.logger.error(f"Error saving reply: {e}")
+        return jsonify({'error': 'Failed to send reply.'}), 500
+
+
+# View: Render Messages Page
+@app.route('/messages')
+@login_required
+def messages_view():
+    """
+    Render the messages page for the logged-in user.
+    
+    Returns the messages.html template.
+    """
+    return render_template('messages.html')
+
+
+# Additional Utility (Optional): For better debugging and data analysis
+@app.route('/api/messages/all', methods=['GET'])
+@login_required
+def get_all_messages():
+    """
+    Admin view: Retrieve all messages for debugging or analytics purposes.
+    
+    Returns a list of all messages in JSON format.
+    """
+    if not current_user.is_admin:  # Assuming User model has an is_admin field
+        return jsonify({'error': 'Unauthorized access.'}), 403
+
+    messages = Message.query.order_by(Message.timestamp.desc()).all()
+    return jsonify([
+        {
+            'id': msg.id,
+            'sender': msg.sender.username,
+            'recipient': msg.recipient.username,
+            'content': msg.content,
+            'timestamp': msg.timestamp.isoformat(),
+            'parent_id': msg.parent_id
+        }
+        for msg in messages
+    ])
+
+
+# User Logout
 @app.route('/logout')
 @login_required
 def logout():
+    """
+    Logout the current user and redirect to the home page.
+    
+    Marks the user as inactive and calls the logout_user function.
+    """
     if current_user.is_authenticated:  # Ensure a user is logged in
         current_user.is_active = False  # Mark user as inactive
         db.session.commit()

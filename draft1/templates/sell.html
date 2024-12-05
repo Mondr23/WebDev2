@@ -1,131 +1,109 @@
 {% extends 'base.html' %}
 {% block title %}Sell{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sell.css') }}">
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h2 class="text-center mb-4">Sell Your Car</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <!-- Car Title -->
-            <div class="mb-3">
-                <label for="title" class="form-label">Car Title</label>
-                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the car title" required>
-            </div>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow p-4 border-0 rounded-4">
+                <h2 class="text-center mb-4 text-gradient">Sell Your Car</h2>
+                <form method="POST" enctype="multipart/form-data" aria-labelledby="sell-form-heading">
+                    <!-- Car Title -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Add Title</label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Enter the car title" required aria-required="true">
+                    </div>
 
-            <!-- Description -->
-            <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Provide a detailed description" required></textarea>
-            </div>
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Provide a detailed description" required aria-required="true"></textarea>
+                    </div>
 
-            <!-- Price -->
-            <div class="mb-3">
-                <label for="price" class="form-label">Price ($)</label>
-                <input type="number" class="form-control" id="price" name="price" placeholder="Enter the price" required>
-            </div>
+                    <!-- Price -->
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price ($)</label>
+                        <input type="number" class="form-control" id="price" name="price" placeholder="Enter the price" required aria-required="true">
+                    </div>
 
-            <!-- Category -->
-            <div class="mb-3">
-                <label for="category" class="form-label">Category</label>
-                <select class="form-select" id="category" name="category_id" required>
-                    {% for category in categories %}
-                        <option value="{{ category.id }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category_id" required aria-required="true">
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <!-- Specifications -->
-            <div class="mb-3">
-                <label for="make" class="form-label">Make</label>
-                <input type="text" class="form-control" id="make" name="make" placeholder="Enter the car make" required>
-            </div>
-            <div class="mb-3">
-                <label for="model" class="form-label">Model</label>
-                <input type="text" class="form-control" id="model" name="model" placeholder="Enter the car model" required>
-            </div>
-            <div class="mb-3">
-                <label for="year" class="form-label">Year</label>
-                <input type="number" class="form-control" id="year" name="year" placeholder="Enter the car year" required>
-            </div>
-            <div class="mb-3">
-                <label for="mileage" class="form-label">Mileage (km)</label>
-                <input type="number" class="form-control" id="mileage" name="mileage" placeholder="Enter the mileage" required>
-            </div>
-            <div class="mb-3">
-                <label for="fuel_type" class="form-label">Fuel Type</label>
-                <input type="text" class="form-control" id="fuel_type" name="fuel_type" placeholder="Enter the fuel type (e.g., Petrol, Diesel)" required>
-            </div>
-            <div class="mb-3">
-                <label for="transmission" class="form-label">Transmission</label>
-                <input type="text" class="form-control" id="transmission" name="transmission" placeholder="Enter the transmission type (e.g., Manual, Automatic)" required>
-            </div>
+                    <!-- Brand -->
+                    <div class="mb-3">
+                        <label for="brand" class="form-label">Brand</label>
+                        <select class="form-select" id="brand" name="brand_id" required aria-required="true">
+                            {% for brand in brands %}
+                                <option value="{{ brand.id }}">{{ brand.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <!-- Location -->
-            <div class="mb-3">
-                <label for="location" class="form-label">Location</label>
-                <input type="text" class="form-control" id="location" name="location" placeholder="Enter your city or address" required>
-            </div>
+                    <!-- Specifications -->
+                    <fieldset>
+                        <legend class="form-label">Specifications</legend>
+                        <div class="mb-3">
+                            <label for="model" class="form-label">Model</label>
+                            <input type="text" class="form-control" id="model" name="model" placeholder="Enter the car model" required aria-required="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="year" class="form-label">Year</label>
+                            <input type="number" class="form-control" id="year" name="year" placeholder="Enter the car year" required aria-required="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="mileage" class="form-label">Mileage (km)</label>
+                            <input type="number" class="form-control" id="mileage" name="mileage" placeholder="Enter the mileage" required aria-required="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="fuel_type" class="form-label">Fuel Type</label>
+                            <input type="text" class="form-control" id="fuel_type" name="fuel_type" placeholder="Enter the fuel type (e.g., Petrol, Diesel)" required aria-required="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="transmission" class="form-label">Transmission</label>
+                            <input type="text" class="form-control" id="transmission" name="transmission" placeholder="Enter the transmission type (e.g., Manual, Automatic)" required aria-required="true">
+                        </div>
+                    </fieldset>
 
-            <!-- Contact Number -->
-            <div class="mb-3">
-                <label for="contact_number" class="form-label">Contact Number</label>
-                <input type="tel" class="form-control" id="contact_number" name="contact_number" placeholder="Enter your phone number" pattern="^\+?[0-9\s\-]+$" required>
-                <small class="form-text text-muted">Include your country code if applicable (e.g., +1 234 567 8901).</small>
-            </div>
+                    <!-- Location -->
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="Enter your city or address" required aria-required="true">
+                    </div>
 
-            <!-- Main Image -->
-            <div class="mb-3">
-                <label for="image" class="form-label">Main Image</label>
-                <input type="file" class="form-control" id="image" name="image" required>
-            </div>
+                    <!-- Contact Number -->
+                    <div class="mb-3">
+                        <label for="contact_number" class="form-label">Contact Number</label>
+                        <input type="tel" class="form-control" id="contact_number" name="contact_number" placeholder="Enter your phone number" pattern="^\+?[0-9\s\-]+$" required aria-required="true" aria-describedby="contact-number-help">
+                        <small id="contact-number-help" class="form-text text-muted">Include your country code if applicable (e.g., +1 234 567 8901).</small>
+                    </div>
 
-            <!-- Additional Images -->
-            <div class="mb-3">
-                <label for="images" class="form-label">Additional Images</label>
-                <input type="file" class="form-control" id="images" name="images" multiple>
-                <small class="form-text text-muted">You can upload multiple images for your car.</small>
-            </div>
+                    <!-- Main Image -->
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Main Image</label>
+                        <input type="file" class="form-control" id="image" name="image" required aria-required="true" aria-describedby="main-image-help">
+                        <small id="main-image-help" class="form-text text-muted">Upload the primary image of your car.</small>
+                    </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary w-100">List Car</button>
-        </form>
+                    <!-- Additional Images -->
+                    <div class="mb-3">
+                        <label for="images" class="form-label">Additional Images</label>
+                        <input type="file" class="form-control" id="images" name="images" multiple aria-describedby="additional-images-help">
+                        <small id="additional-images-help" class="form-text text-muted">You can upload multiple images for your car.</small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100" aria-label="List your car for sale">List Car</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
-
-<!-- JavaScript for Image Previews and Geolocation -->
-<script>
-    // Image Preview
-    document.getElementById('images').addEventListener('change', function(event) {
-        const previewContainer = document.createElement('div');
-        previewContainer.className = 'mt-3';
-        const files = event.target.files;
-
-        [...files].forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'img-thumbnail me-2 mb-2';
-                img.style.width = '100px';
-                previewContainer.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-
-        event.target.parentElement.appendChild(previewContainer);
-    });
-
-    // Autofill Location using Geolocation
-    document.getElementById('location').addEventListener('focus', function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const { latitude, longitude } = position.coords;
-                fetch(`https://geocode.xyz/${latitude},${longitude}?geoit=json`)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('location').value = `${data.city}, ${data.country}`;
-                    });
-            });
-        }
-    });
-</script>
+<script src="{{ url_for('static', filename='js/sell.js') }}"></script>
 {% endblock %}

@@ -5,27 +5,28 @@
     <h1 class="text-center">Search Listings</h1>
 
     <!-- Search Form -->
-    <form method="GET" action="{{ url_for('search') }}" class="d-flex my-4">
-        <input type="text" name="query" class="form-control form-control-lg" placeholder="Search for listings..." value="{{ query }}">
-        <button type="submit" class="btn btn-primary btn-lg ms-3">Search</button>
+    <form method="GET" action="{{ url_for('search') }}" class="d-flex my-4" role="search" aria-labelledby="search-form-heading">
+        <label for="search-query" class="visually-hidden">Search Listings</label>
+        <input type="text" id="search-query" name="query" class="form-control form-control-lg" placeholder="Search for listings..." value="{{ query }}" aria-label="Search for listings">
+        <button type="submit" class="btn btn-primary btn-lg ms-3" aria-label="Submit search query">Search</button>
     </form>
 
     <!-- Search Results -->
     <div class="mt-5">
         {% if query %}
-            <h3 class="mb-4">Results for "{{ query }}"</h3>
+            <h3 id="search-results-heading" class="mb-4">Results for "{{ query }}"</h3>
             {% if results %}
-                <div class="row">
+                <div class="row" role="list" aria-live="polite">
                     {% for listing in results %}
-                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4" role="listitem">
                         <div class="card shadow-sm">
-                            <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="{{ listing.title }}">
+                            <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="Image of {{ listing.title }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ listing.title }}</h5>
                                 <p class="card-text text-muted">{{ listing.description[:100] }}...</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-primary">${{ listing.price }}</span>
-                                    <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    <span class="text-primary" aria-label="Price: ${{ listing.price }}">${{ listing.price }}</span>
+                                    <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-sm btn-outline-primary" aria-label="View details of {{ listing.title }}">View</a>
                                 </div>
                             </div>
                         </div>
@@ -33,7 +34,7 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="text-muted">No results found for "{{ query }}".</p>
+                <p class="text-muted" aria-live="polite">No results found for "{{ query }}".</p>
             {% endif %}
         {% endif %}
     </div>

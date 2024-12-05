@@ -1,128 +1,86 @@
 {% extends 'base.html' %}
 {% block title %}Messages{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/messages.css') }}">
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <!-- Contacts Sidebar -->
-        <div class="col-lg-3">
-            <h3 class="mb-4">Contacts</h3>
-            <ul id="contactsList" class="list-group shadow-sm">
-                <!-- Contacts will be dynamically loaded here -->
-            </ul>
+<div class="container py-4">
+    <div class="card shadow-lg border-0">
+        <!-- Navbar for Messages -->
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h4 class="mb-0" id="messagesHeader">Messages</h4>
         </div>
+        <div class="card-body">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs" id="messageTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button" role="tab" aria-controls="received" aria-selected="true">
+                        Received
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent" type="button" role="tab" aria-controls="sent" aria-selected="false">
+                        Sent
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="new-message-tab" data-bs-toggle="tab" data-bs-target="#new-message" type="button" role="tab" aria-controls="new-message" aria-selected="false">
+                        New Message
+                    </button>
+                </li>
+            </ul>
 
-        <!-- Messages Section -->
-        <div class="col-lg-9">
-            <h3 class="mb-4">Messages</h3>
-            <div id="receivedMessages" class="messages-container border rounded shadow-sm p-3 bg-light">
-                <!-- Received messages will be dynamically loaded here -->
-            </div>
-
-            <h3 class="mt-5">Sent Messages</h3>
-            <div id="sentMessages" class="messages-container border rounded shadow-sm p-3 bg-light">
-                <!-- Sent messages will be dynamically loaded here -->
-            </div>
-
-            <!-- Send Message Form -->
-            <h3 class="mt-5">Send a Message</h3>
-            <form id="sendMessageForm" class="mt-3">
-                <div class="mb-3">
-                    <label for="recipient" class="form-label">Recipient Username</label>
-                    <input type="text" id="recipient" name="recipient" class="form-control" required>
+            <!-- Tab Content -->
+            <div class="tab-content mt-3" id="messageTabsContent">
+                <!-- Received Messages -->
+                <div class="tab-pane fade show active" id="received" role="tabpanel" aria-labelledby="received-tab">
+                    <div id="receivedMessages" class="messages-container" aria-live="polite" aria-busy="false">
+                        <!-- Received messages dynamically populated -->
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="content" class="form-label">Message</label>
-                    <textarea id="content" name="content" class="form-control" rows="3" required></textarea>
+
+                <!-- Sent Messages -->
+                <div class="tab-pane fade" id="sent" role="tabpanel" aria-labelledby="sent-tab">
+                    <div id="sentMessages" class="messages-container" aria-live="polite" aria-busy="false">
+                        <!-- Sent messages dynamically populated -->
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Send Message</button>
-            </form>
+
+                <!-- New Message Form -->
+                <div class="tab-pane fade" id="new-message" role="tabpanel" aria-labelledby="new-message-tab">
+                    <form id="newMessageForm" class="mt-3" aria-labelledby="newMessageFormHeading">
+                        <div class="mb-3">
+                            <label for="recipientUsername" class="form-label">Recipient Username</label>
+                            <input type="text" id="recipientUsername" class="form-control" placeholder="Enter username" required aria-required="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newMessageContent" class="form-label">Message</label>
+                            <textarea id="newMessageContent" class="form-control" rows="3" placeholder="Type your message..." required aria-required="true"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" aria-label="Send new message">Send Message</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-// Utility function for creating HTML elements
-function createMessageHTML({ sender, recipient, content, timestamp }, isReceived = true) {
-    const recipientLabel = isReceived ? sender : `To: ${recipient}`;
-    return `
-        <div class="message mb-4">
-            <div class="d-flex align-items-center">
-                <div class="avatar me-3">
-                    <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" class="rounded-circle" width="40" height="40">
-                </div>
-                <h6 class="mb-0">${recipientLabel}</h6>
-                <small class="text-muted ms-auto">${new Date(timestamp).toLocaleString()}</small>
+<!-- Reply Modal -->
+<div id="replyModal" class="modal fade" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="replyModalLabel">Reply to Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="message-content mt-2 p-3 rounded bg-white shadow-sm">
-                ${content}
+            <div class="modal-body">
+                <p id="replyMessagePreview" class="text-muted mb-3" aria-live="polite"></p>
+                <textarea id="replyMessageContent" class="form-control" rows="3" placeholder="Type your reply..." required aria-required="true"></textarea>
             </div>
-        </div>`;
-}
-
-// Populate a message container with messages
-function populateMessages(containerId, messages, isReceived = true) {
-    const container = document.getElementById(containerId);
-    if (!messages.length) {
-        container.innerHTML = `<p class="text-muted text-center">${isReceived ? 'No received messages.' : 'No sent messages.'}</p>`;
-        return;
-    }
-    container.innerHTML = messages.map(msg => createMessageHTML(msg, isReceived)).join('');
-}
-
-// Fetch messages from the API
-async function fetchMessages() {
-    try {
-        const response = await fetch('/api/messages');
-        if (!response.ok) throw new Error(`Error fetching messages: ${response.statusText}`);
-
-        const { received_messages, sent_messages } = await response.json();
-
-        // Populate both received and sent message containers
-        populateMessages('receivedMessages', received_messages, true);
-        populateMessages('sentMessages', sent_messages, false);
-    } catch (error) {
-        console.error('Error fetching messages:', error);
-        alert('Failed to load messages. Please try again later.');
-    }
-}
-
-// Send a message through the API
-async function sendMessage(event) {
-    event.preventDefault();
-
-    const recipient = document.getElementById('recipient').value.trim();
-    const content = document.getElementById('content').value.trim();
-
-    if (!recipient || !content) {
-        alert('Recipient and message content cannot be empty.');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/messages/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipient, content }),
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-            alert(result.message);
-            await fetchMessages(); // Refresh messages after successful send
-            document.getElementById('sendMessageForm').reset(); // Clear form
-        } else {
-            alert(result.error || 'Failed to send the message.');
-        }
-    } catch (error) {
-        console.error('Error sending message:', error);
-        alert('An error occurred while sending the message. Please try again.');
-    }
-}
-
-// Initialize the page by fetching messages and setting up the form handler
-document.addEventListener('DOMContentLoaded', () => {
-    fetchMessages(); // Load messages on page load
-    document.getElementById('sendMessageForm').addEventListener('submit', sendMessage);
-});
-</script>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="sendReplyBtn" class="btn btn-primary">Send Reply</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/messages.js') }}"></script>
 {% endblock %}

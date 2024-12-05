@@ -1,212 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base_admin.html' %}
+{% block title %}Manage Data{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Manage Data</h1>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Data</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg glass-navbar sticky-top shadow-lg">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('admin_page') }}">SOOQadmin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+    <!-- Tabs for Switching Between Tables -->
+    <ul class="nav nav-tabs mt-4" id="dataTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users"
+                type="button" role="tab" aria-controls="users" aria-selected="true">
+                <i class="bi bi-people" aria-hidden="true"></i> Users
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_page') }}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('manage_data') }}">Manage Data</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i>Admin Panel
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i
-                                        class="bi bi-person-fill me-1"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('messages') }}"><i
-                                        class="bi bi-chat-dots-fill me-1"></i>Messages</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i
-                                        class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="listings-tab" data-bs-toggle="tab" data-bs-target="#listings" type="button"
+                role="tab" aria-controls="listings" aria-selected="false">
+                <i class="bi bi-card-list" aria-hidden="true"></i> Listings
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-4" id="dataTabsContent">
+        <!-- Users Table -->
+        <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+            <h2 class="mb-3">Users</h2>
+
+            <!-- Search and Filter -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <label for="search-users" class="visually-hidden">Search Users</label>
+                <input id="search-users" type="text" class="form-control w-50" placeholder="Search by username or email" aria-label="Search Users">
+                <label for="filter-users" class="visually-hidden">Filter Users</label>
+                <select id="filter-users" class="form-select" aria-label="Filter Users">
+                    <option value="all">All Users</option>
+                    <option value="active">Active</option>
+                    <option value="admin">Admins</option>
+                </select>
             </div>
-        </div>
-    </nav>
 
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">Manage Data</h1>
-
-        <!-- Tabs for Switching Between Tables -->
-        <ul class="nav nav-tabs mt-4" id="dataTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users"
-                    type="button" role="tab" aria-controls="users" aria-selected="true">
-                    <i class="bi bi-people"></i> Users
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="listings-tab" data-bs-toggle="tab" data-bs-target="#listings" type="button"
-                    role="tab" aria-controls="listings" aria-selected="false">
-                    <i class="bi bi-card-list"></i> Listings
-                </button>
-            </li>
-        </ul>
-
-        <!-- Tab Content -->
-        <div class="tab-content mt-4" id="dataTabsContent">
-            <!-- Users Table -->
-            <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
-                <h2 class="mb-3">Users</h2>
-
-                <!-- Search and Filter -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <input type="text" class="form-control w-50" placeholder="Search by username or email">
-                    <div>
-                        <select class="form-select">
-                            <option value="all">All Users</option>
-                            <option value="active">Active</option>
-                            <option value="admin">Admins</option>
-                        </select>
-                    </div>
-                </div>
-
-                <table class="table table-hover table-responsive">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Admin</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ user.id }}</td>
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
-                            <!-- <td>{{ 'Yes' if user.is_admin else 'No' }}</td>
-                            <td>{{ 'Yes' if user.is_active else 'No' }}</td> -->
-                            <td>
-                                <!-- Admin Checkbox Form -->
-                                <form action="{{ url_for('update_user_admin_status', user_id=user.id) }}" method="POST">
-                                    <input type="checkbox" name="is_admin" value="1" 
-                                           onchange="this.form.submit()" {% if user.is_admin %}checked{% endif %}>
+            <table class="table table-hover table-responsive" aria-label="Users Table">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Admin</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <form action="{{ url_for('update_user_admin_status', user_id=user.id) }}" method="POST">
+                                <label for="is-admin-{{ user.id }}" class="visually-hidden">Toggle Admin Status</label>
+                                <input id="is-admin-{{ user.id }}" type="checkbox" name="is_admin" value="1" 
+                                       onchange="this.form.submit()" {% if user.is_admin %}checked{% endif %} aria-label="Toggle admin status for {{ user.username }}">
+                            </form>
+                        </td>
+                        <td>{{ 'Yes' if user.is_active else 'No' }}</td>
+                        <td>
+                            <div class="d-flex">
+                                <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm me-2" aria-label="Edit {{ user.username }}">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                    <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete {{ user.username }}">Delete</button>
                                 </form>
-                            </td>
-                            <td>{{ 'Yes' if user.is_active else 'No' }}</td>
-                            <td>
-                                <div class="d-flex">
-                                    <a href="{{ url_for('edit_user', user_id=user.id) }}"
-                                        class="btn btn-warning btn-sm me-2">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST">
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Listings Section -->
-            <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
-                <div class="row g-3">
-                    {% for listing in listings %}
-                    <div class="col-lg-4 col-md-6 col-sm-12">
-                        <div class="card listing-card shadow h-100">
-                            <!-- Image with Price Badge -->
-                            <div class="position-relative">
-                                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}"
-                                    class="card-img-top" alt="{{ listing.title }}">
-                                <div class="badge bg-success position-absolute top-0 end-0 m-2">${{ listing.price }}
-                                </div>
                             </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-                            <!-- Card Body -->
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ listing.title }}</h5>
-                                <p class="card-text text-muted flex-grow-1">{{ listing.description[:100] }}...</p>
-                                <span class="text-muted">Owner: {{ listing.owner.username }} (ID: {{ listing.owner.id
-                                    }})</span>
+        <!-- Listings Section -->
+        <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
+            <div class="row g-3" role="list">
+                {% for listing in listings %}
+                <div class="col-lg-4 col-md-6 col-sm-12" role="listitem">
+                    <div class="card listing-card shadow h-100">
+                        <!-- Image with Price Badge -->
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="Image of {{ listing.title }}">
+                            <div class="badge bg-success position-absolute top-0 end-0 m-2" aria-label="Price: ${{ listing.price }}">${{ listing.price }}</div>
+                        </div>
 
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <a href="{{ url_for('listing_details', listing_id=listing.id) }}"
-                                        class="btn btn-primary btn-sm">
-                                        <i class="bi bi-eye"></i> View Details
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <form action="{{ url_for('delete_listing', listing_id=listing.id) }}" method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this listing?');">
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
+                        <!-- Card Body -->
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <p class="card-text text-muted flex-grow-1">{{ listing.description[:100] }}...</p>
+                            <span class="text-muted">Owner: {{ listing.owner.username }} (ID: {{ listing.owner.id }})</span>
 
-                                </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-primary btn-sm" aria-label="View details of {{ listing.title }}">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                                <form action="{{ url_for('delete_listing', listing_id=listing.id) }}" method="POST"
+                                    onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                                    <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete {{ listing.title }}">Delete</button>
+                                </form>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
-
-<!-- Listings Table -->
-<!-- <div class="tab-pane fade" id="listings" role="tabpanel" aria-labelledby="listings-tab">
-                <h2>Listings</h2>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Price</th>
-                            <th>Owner</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for listing in listings %}
-                        <tr>
-                            <td>{{ listing.id }}</td>
-                            <td>{{ listing.title }}</td>
-                            <td>${{ listing.price }}</td>
-                            <td>{{ listing.owner.username }}</td>
-                            <td>
-                                <a href="{{ url_for('edit_listing', listing_id=listing.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                <a href="{{ url_for('delete_listing', listing_id=listing.id) }}" class="btn btn-danger btn-sm">Delete</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div> -->
-<!-- Listings Section -->
+</div>
+{% endblock %}

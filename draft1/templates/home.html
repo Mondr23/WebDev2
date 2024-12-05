@@ -1,28 +1,42 @@
 {% extends 'base.html' %}
+
+{% block title %}
+Home 
+{% endblock %}
+
 {% block content %}
-<div class="hero text-center py-5">
-    <h1 class="display-4 text-gradient">Welcome to SOOQ</h1>
-    <p class="lead">Find the best deals on Cars, Properties, and more!</p>
-    <a href="{{ url_for('sell') }}" class="btn btn-primary btn-lg mt-4 rounded-pill">Sell Now</a>
+<!-- Hero Section -->
+<div class="hero text-center py-5" style="background: linear-gradient(to right, #4facfe, #00f2fe); color: white;" role="banner">
+    <h1 class="display-4 font-weight-bold">Welcome to <span class="text-warning">SOOQ</span></h1>
+    <p class="lead mt-3">Find the best deals on cars and more.</p>
+    <a href="{{ url_for('sell') }}" class="btn btn-warning btn-lg mt-4 rounded-pill shadow-lg px-5" role="button" aria-label="Sell your car now on SOOQ">Sell Now</a>
 </div>
-<div class="listings mt-5">
-    <h2 class="text-center">Featured Listings</h2>
-    <div class="row mt-4">
+
+<!-- Featured Listings -->
+<div class="listings container mt-5">
+    <h2 class="text-center mb-4 font-weight-bold">Featured Listings</h2>
+    {% if listings %}
+    <div class="row" role="list">
         {% for listing in listings %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card shadow h-100">
-                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top rounded-top" alt="{{ listing.title }}">
-                <div class="card-body">
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4" role="listitem">
+            <div class="card shadow-lg border-0 h-100">
+                <img src="{{ url_for('static', filename='car-images/' + listing.image_file) }}" class="card-img-top" alt="Image of {{ listing.title }}">
+                <div class="card-body text-center">
                     <h5 class="card-title">{{ listing.title }}</h5>
-                    <p class="card-text text-muted">{{ listing.description[:100] }}...</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price">${{ listing.price }}</span>
-                        <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-primary rounded-pill">Details</a>
+                    <p class="card-text text-muted">{{ listing.description[:60] }}...</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="badge bg-success text-white p-2" aria-label="Price: ${{ listing.price }}">${{ listing.price }}</span>
+                        <a href="{{ url_for('listing_details', listing_id=listing.id) }}" class="btn btn-outline-primary rounded-pill" role="button" aria-label="View details of {{ listing.title }}">Details</a>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <div class="alert alert-info text-center mt-4" role="alert">
+        No listings available at the moment. Check back soon!
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

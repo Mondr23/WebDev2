@@ -36,7 +36,7 @@ class Listing(db.Model):
     image_file = db.Column(db.String(50), nullable=True, default='default.jpg') 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    make = db.Column(db.String(50), nullable=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brand.id'), nullable=False)
     model = db.Column(db.String(50), nullable=True)
     year = db.Column(db.Integer, nullable=True)
     mileage = db.Column(db.Integer, nullable=True)  
@@ -49,6 +49,7 @@ class Listing(db.Model):
     owner = db.relationship('User', back_populates='listings')
     category = db.relationship('Category', back_populates='listings')
     images = db.relationship('ListingImage', back_populates='listing', cascade='all, delete-orphan')
+    brand = db.relationship('Brand', back_populates='listings')  # Relationship with the Brand model
 
 class ListingImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -79,7 +80,20 @@ class Message(db.Model):
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    parent_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)
 
-    # Relationships
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
     recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+    parent = db.relationship('Message', remote_side=[id], backref='replies')
+
+
+class Brand(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+      # Relationship to Listing
+    listings = db.relationship('Listing', back_populates='brand')
+
+
+
+

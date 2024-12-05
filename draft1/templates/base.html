@@ -1,72 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SOOQ - Marketplace{% endblock %}</title>
+    <title>{% block title %}SOOQ - Your Marketplace{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg glass-navbar sticky-top shadow-lg">
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg" role="navigation" aria-label="Main Navigation">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-                <span class="brand-name">SOOQ</span>
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('home') }}" aria-label="SOOQ Home">
+                <i class="bi bi-shop me-2 text-highlight" aria-hidden="true"></i> SOOQ
             </a>
-            <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link link-hover" href="{{ url_for('home') }}"><i class="bi bi-house"></i> Home</a></li>
-                    <li class="nav-item"><a class="nav-link link-hover" href="{{ url_for('home') }}"><i class="bi bi-chat-dots-fill"></i> AI help</a></li>
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="{{ url_for('home') }}" aria-label="Home">
+                            <i class="bi bi-house" aria-hidden="true"></i> Home
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Categories</a>
-                        <ul class="dropdown-menu">
+                        <a class="nav-link dropdown-toggle text-light" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Categories">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
                             {% for category in categories %}
                                 <li><a class="dropdown-item" href="{{ url_for('category', category_id=category.id) }}">{{ category.name }}</a></li>
                             {% endfor %}
                         </ul>
                     </li>
-                    <form class="d-flex ms-3" method="GET" action="{{ url_for('search') }}">
-                        <input class="form-control me-2 rounded-pill" type="search" name="query" placeholder="Search">
-                        <button class="btn btn-outline-light rounded-pill" type="submit">Search</button>
-                    </form>
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link link-hover" href="{{ url_for('sell') }}"><i class="bi bi-upload"></i> Sell</a></li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle link-hover" href="#" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ current_user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person-fill"></i>Profile</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('messages_view') }}"><i class="bi bi-chat-fill"></i>Messages</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('favorites_page') }}"><i class="bi bi-heart-fill"></i>Favorites</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i>Logout</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link link-hover" href="{{ url_for('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="btn btn-register" href="{{ url_for('register') }}">Register</a></li>
-                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" id="brandsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Brands">
+                            Brands
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
+                            {% for brand in brands %}
+                                <li><a class="dropdown-item" href="{{ url_for('brand', brand_id=brand.id) }}">{{ brand.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <form class="d-flex ms-lg-3" method="GET" action="{{ url_for('search') }}" role="search" aria-label="Search">
+                            <input class="form-control search-input rounded-pill" type="search" name="query" placeholder="Search" aria-label="Search input">
+                            <button class="btn btn-outline-light rounded-pill ms-2" type="submit">Search</button>
+                        </form>
+                    </li>
                 </ul>
+                <div class="ms-4">
+                    {% if current_user.is_authenticated %}
+                        <div class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle text-light" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User Menu">
+                                <i class="bi bi-person-circle" aria-hidden="true"></i> {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('messages_view') }}">Messages</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('favorites_page') }}">Favorites</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light rounded-pill me-2">Login</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-accent rounded-pill">Sign Up</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-            {% if messages %}
-                <div class="alert-container">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 container my-5" role="main">
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer py-5 text-light" role="contentinfo">
+        <div class="container">
+            <div class="row text-center text-md-start">
+                <div class="col-md-4">
+                    <h5 class="fw-bold text-white" aria-label="SOOQ Footer">
+                        <i class="bi bi-shop me-2 text-highlight" aria-hidden="true"></i>SOOQ
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -8,6 +8,8 @@
     --highlight-color: #e76f51; /* Coral for highlights */
 }
 
+
+
 /* Global Reset */
 * {
     margin: 0;
@@ -61,32 +63,6 @@ body {
     color: var(--highlight-color);
 }
 
-.search-bar {
-    display: flex;
-    align-items: center;
-}
-
-.search-bar input {
-    padding: 5px 10px;
-    border: 1px solid var(--secondary-color);
-    border-radius: 5px;
-    outline: none;
-}
-
-.search-bar button {
-    padding: 5px 15px;
-    background-color: var(--highlight-color);
-    color: var(--text-light);
-    border: none;
-    border-radius: 5px;
-    margin-left: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.search-bar button:hover {
-    background-color: #d65a3f;
-}
 
 /* Footer */
 .footer {

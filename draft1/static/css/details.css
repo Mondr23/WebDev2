@@ -1,0 +1,70 @@
+/* Carousel Styling */
+.carousel img {
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.carousel img:hover {
+    transform: scale(1.02);
+}
+
+/* Card Styling */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+/* Specifications Table */
+.table-borderless td {
+    padding: 0.75rem 0.5rem;
+}
+
+.table-borderless tr:nth-child(even) td {
+    background-color: rgba(240, 240, 240, 0.5);
+}
+
+/* Action Buttons */
+.btn {
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-like[data-favorited="true"] {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+
+.btn-like[data-favorited="true"]:hover {
+    background-color: #ff3333;
+}
+
+/* Badge Styling */
+.badge {
+    border-radius: 10px;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+    .btn {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .carousel img {
+        max-height: 250px;
+        object-fit: cover;
+    }
+}

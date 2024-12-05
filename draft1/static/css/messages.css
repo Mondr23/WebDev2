@@ -1,0 +1,37 @@
+/* Message Styling */
+.message p {
+    margin: 0;
+}
+
+.message small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.message .reply-btn {
+    font-size: 0.9rem;
+    color: #007bff;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.message.received {
+    background: #f1f3f5;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    max-width: 70%;
+}
+
+.message.sent {
+    background: #d1e7dd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    max-width: 70%;
+    margin-left: auto;
+}
