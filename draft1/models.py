@@ -1,6 +1,7 @@
 from app import db, login_manager
 from flask_login import UserMixin
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 @login_manager.user_loader
@@ -34,6 +35,14 @@ class User(db.Model, UserMixin):
         backref='favorited_by',
         lazy='dynamic'
     )
+
+    def set_password(self, password):
+        """Hash and set the user's password."""
+        self.password = generate_password_hash(password, method='scrypt')
+
+    def check_password(self, password):
+        """Check if the provided password matches the stored hash."""
+        return check_password_hash(self.password, password)
 
 
 class Listing(db.Model):

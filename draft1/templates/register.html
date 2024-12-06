@@ -1,6 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Register{% endblock %}
 {% block content %}
+<!-- Error Message Placeholder -->
+{% if error_message %}
+<div class="alert alert-danger mt-3" role="alert" aria-live="polite">
+    {{ error_message }}
+</div>
+{% endif %}
+
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
         <h2 class="text-center">Register</h2>
@@ -19,13 +26,6 @@
             </div>
             <button type="submit" class="btn btn-success w-100" aria-label="Register your account">Register</button>
         </form>
-
-        <!-- Error Message Placeholder -->
-        {% if error_message %}
-        <div class="alert alert-danger mt-3" role="alert" aria-live="polite">
-            {{ error_message }}
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

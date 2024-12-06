@@ -5,19 +5,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import User, Message, Category, Listing, ListingImage, Brand
 from app import app, db
 from sqlalchemy import func
-from datetime import datetime
-import os
+from datetime import datetime, timezone
+import os, re
+
 
 # View: Home Page
 @app.route('/')
 def home():
     """Render the home page with categories and listings."""
     categories = Category.query.all()
-    listings = Listing.query.limit(12).all()
+    listings = Listing.query.limit(20).all()
     return render_template('home.html', categories=categories, listings=listings)
 
 
-# View: Login
 # View: Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -38,6 +38,7 @@ def login():
 
     return render_template('login.html')
 
+
 # View: Logout
 @app.route('/logout')
 @login_required
@@ -49,7 +50,6 @@ def logout():
     return redirect(url_for('home'))
 
 
-# View: Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """Handle user registration."""
@@ -57,15 +57,45 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        hashed_password = generate_password_hash(password, method='scrypt')  # Use scrypt for hashing
+        
+        # Validation
+        if not username or not email or not password:
+            flash('All fields are required.', 'danger')
+            return render_template('register.html')
 
-        new_user = User(username=username, email=email, password=hashed_password)
+        if not re.match("^[a-zA-Z0-9_]{3,20}$", username):
+            flash('Username must be 3-20 characters and contain only letters, numbers, or underscores.', 'danger')
+            return render_template('register.html')
+        
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash('Please enter a valid email address.', 'danger')
+            return render_template('register.html')
+        
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('register.html')
+        
+        # Check for existing email
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            flash('Email already registered. Please log in.', 'danger')
+            return render_template('register.html')
+        
+          # Check for existing username
+        existing_name = User.query.filter_by(username=username).first()
+        if existing_name:
+            flash('Username already existed. Please try again.', 'danger')
+            return render_template('register.html', error_message="Username already in use.")
+
+        # Create and store the user
+        new_user = User(username=username, email=email)
+        new_user.set_password(password) 
         db.session.add(new_user)
         db.session.commit()
 
         flash('Your account has been created! You can now log in.', 'success')
         return redirect(url_for('login'))
-
+    
     return render_template('register.html')
 
 
@@ -231,6 +261,11 @@ def update_password():
     if not current_user.check_password(current_password):
         flash('Current password is incorrect.', 'danger')
         return redirect(url_for('profile'))
+    
+    #Validate teh new password 
+    if len(new_password) < 8:
+        flash('New password must be at least 8 characters long.', 'danger')
+        return redirect(url_for('profile'))
 
     current_user.set_password(new_password)
     db.session.commit()
@@ -238,16 +273,28 @@ def update_password():
     return redirect(url_for('profile'))
 
 
-# View: Update Email
 @app.route('/update_email', methods=['POST'])
 @login_required
 def update_email():
     """Update the current user's email."""
     new_email = request.form.get('email')
+    
     if not new_email:
         flash('Email cannot be empty.', 'danger')
         return redirect(url_for('profile'))
 
+    # Validate the email format
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+        flash('Please enter a valid email address.', 'danger')
+        return redirect(url_for('profile'))
+
+    # Check if the email is already taken
+    existing_email = User.query.filter_by(email=new_email).first()
+    if existing_email:
+        flash('Email already registered. Please try a different email.', 'danger')
+        return redirect(url_for('profile'))
+
+    # Update the user's email
     current_user.email = new_email
     db.session.commit()
     flash('Email updated successfully.', 'success')
@@ -260,13 +307,31 @@ def update_email():
 def update_username():
     """Update the current user's username."""
     new_name = request.form.get('username')
+
     if not new_name:
         flash('Username cannot be empty.', 'danger')
         return redirect(url_for('profile'))
 
+    # Validate username format
+    if not re.match("^[a-zA-Z0-9_]{3,20}$", new_name):
+        flash('Username must be 3-20 characters long and contain only letters, numbers, or underscores.', 'danger')
+        return redirect(url_for('profile'))
+
+    # Check for existing username
+    existing_name = User.query.filter_by(username=new_name).first()
+    if existing_name:
+        flash('Username already exists. Please try again.', 'danger')
+        return redirect(url_for('profile'))
+
+    # Update the user's username
     current_user.username = new_name
-    db.session.commit()
-    flash('Username updated successfully.', 'success')
+    try:
+        db.session.commit()
+        flash('Username updated successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()  # Roll back in case of error
+        flash('An error occurred while updating your username. Please try again.', 'danger')
+
     return redirect(url_for('profile'))
 
 
@@ -378,6 +443,12 @@ def load_categories():
 def listing_details(listing_id):
     """View details of a specific listing."""
     listing = Listing.query.get_or_404(listing_id)
+    
+    if current_user.is_authenticated and current_user.is_admin:
+        # Render admin-specific details page
+        return render_template('admin_details.html', listing=listing)
+    
+    # Render general details page for non-admin users
     return render_template('details.html', listing=listing)
 
 
@@ -457,48 +528,6 @@ def messages():
     })
 
 
-# API: Send a New Message
-@app.route('/api/messages/send', methods=['POST'])
-@login_required
-def send_message():
-    """
-    API endpoint to send a new message to a recipient.
-    
-    Returns a success message or an error response.
-    """
-    data = request.json
-    recipient_username = data.get('recipient')
-    content = data.get('content')
-
-    # Validation
-    if not recipient_username or not content:
-        return jsonify({'error': 'Recipient and content are required.'}), 400
-
-    recipient = User.query.filter_by(username=recipient_username).first()
-    if not recipient:
-        return jsonify({'error': 'User not found.'}), 404
-
-    if recipient.id == current_user.id:
-        return jsonify({'error': 'You cannot send a message to yourself.'}), 400
-
-    # Save the message
-    try:
-        message = Message(
-            sender_id=current_user.id,
-            recipient_id=recipient.id,
-            content=content,
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(message)
-        db.session.commit()
-
-        app.logger.info(f"Message sent successfully: {message}")
-        return jsonify({'success': True, 'message': 'Message sent successfully!'})
-    except Exception as e:
-        app.logger.error(f"Error saving message: {e}")
-        return jsonify({'error': 'Failed to send message.'}), 500
-
-
 # API: Reply to a Message
 @app.route('/api/messages/reply', methods=['POST'])
 @login_required
@@ -539,6 +568,47 @@ def reply_to_message():
     except Exception as e:
         app.logger.error(f"Error saving reply: {e}")
         return jsonify({'error': 'Failed to send reply.'}), 500
+
+
+# API: Send a New Message
+@app.route('/api/messages/send', methods=['POST'])
+@login_required
+def send_message():
+    """
+    API endpoint to send a new message to a recipient.
+    """
+    data = request.json
+    recipient_username = data.get('recipient')
+    content = data.get('content')
+
+    if not recipient_username or not content:
+        app.logger.error("Missing recipient or content.")
+        return jsonify({'error': 'Recipient and content are required.'}), 400
+
+    recipient = User.query.filter_by(username=recipient_username).first()
+    if not recipient:
+        app.logger.error(f"Recipient '{recipient_username}' not found.")
+        return jsonify({'error': 'User not found.'}), 404
+
+    if recipient.id == current_user.id:
+        app.logger.error("User attempted to send message to themselves.")
+        return jsonify({'error': 'You cannot send a message to yourself.'}), 400
+
+    try:
+        message = Message(
+            sender_id=current_user.id,
+            recipient_id=recipient.id,
+            content=content,
+            timestamp=datetime.now(timezone.utc)
+        )
+        db.session.add(message)
+        db.session.commit()
+        app.logger.info(f"Message sent successfully: {message}")
+        return jsonify({'success': True, 'message': 'Message sent successfully!'})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error saving message: {e}")
+        return jsonify({'error': 'Failed to send message.'}), 500
 
 
 # View: Render Messages Page
