@@ -1,14 +1,3 @@
-/* Root Variables */
-:root {
-    --primary-color: #4facfe; /* Teal */
-    --secondary-color: #264653; /* Dark Navy */
-    --background-color: #f4f4f4; /* Light Gray */
-    --text-dark: #333; /* Dark Text */
-    --text-light: #333; /* Light Text */
-    --highlight-color: #e76f51; /* Coral for highlights */
-}
-
-/* Global Reset */
 * {
     margin: 0;
     padding: 0;
@@ -17,8 +6,8 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-dark);
+    background-color:#f4f4f4;
+    color: #333;
     line-height: 1.6;
     margin: 0;
     display: flex;
@@ -28,8 +17,8 @@ body {
 
 /* Navbar */
 .navbar {
-    background-color: var(--primary-color);
-    color: var(--text-light);
+    background-color: #4facfe;
+    color: #333;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -40,7 +29,7 @@ body {
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--text-light);
+    color: #333;
     text-decoration: none;
 }
 
@@ -51,15 +40,12 @@ body {
 }
 
 .navbar-nav a {
-    color: var(--text-light);
+    color: #333;
     text-decoration: none;
     font-size: 1rem;
     transition: color 0.3s;
 }
 
-.navbar-nav a:hover {
-    color: var(--highlight-color);
-}
 
 .search-bar {
     display: flex;
@@ -68,15 +54,15 @@ body {
 
 .search-bar input {
     padding: 5px 10px;
-    border: 1px solid var(--secondary-color);
+    border: 1px solid #264653 ;
     border-radius: 5px;
     outline: none;
 }
 
 .search-bar button {
     padding: 5px 15px;
-    background-color: var(--highlight-color);
-    color: var(--text-light);
+    background-color: #e76f51;
+    color: #333;
     border: none;
     border-radius: 5px;
     margin-left: 10px;
@@ -86,6 +72,33 @@ body {
 
 .search-bar button:hover {
     background-color: #d65a3f;
+}
+
+.hero {
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: white;
+    padding-top: 3rem; 
+    padding-bottom: 3rem; 
+    text-align: center; 
+}
+
+.hero h1 {
+    font-weight: bold;
+    font-size: 2.5rem; 
+}
+
+.hero p {
+    margin-top: 1rem;
+    font-size: 1.25rem; 
+}
+
+.hero a {
+    margin-top: 1.5rem; 
+    padding-left: 2.5rem; 
+    padding-right: 2.5rem; 
+    border-radius: 50px; 
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); 
+    font-size: 1.125rem; 
 }
 
 /* Footer */

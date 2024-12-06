@@ -12,7 +12,7 @@ import os, re
 # View: Home Page
 @app.route('/')
 def home():
-    """Render the home page with categories and listings."""
+    """Render the home page"""
     categories = Category.query.all()
     listings = Listing.query.limit(20).all()
     return render_template('home.html', categories=categories, listings=listings)
@@ -125,14 +125,14 @@ def admin_page():
     total_listings = Listing.query.count()
     active_users = User.query.filter_by(is_active=True).count()
 
-    # Listings by category
+    # Listings by category chart
     category_data = db.session.query(
         Category.name, func.count(Listing.id)
     ).join(Listing).group_by(Category.name).all()
     category_labels = [category[0] for category in category_data]
     category_counts = [category[1] for category in category_data]
 
-    # Listings by location
+    # Listings by location chart
     location_data = db.session.query(
         Listing.location, func.count(Listing.id)
     ).group_by(Listing.location).all()
@@ -272,7 +272,7 @@ def update_password():
     flash('Password updated successfully.', 'success')
     return redirect(url_for('profile'))
 
-
+# View: Update email
 @app.route('/update_email', methods=['POST'])
 @login_required
 def update_email():
@@ -615,9 +615,7 @@ def send_message():
 @app.route('/messages')
 @login_required
 def messages_view():
-    """
-    Render the messages page for the logged-in user.
-    
+    """ 
     Returns the messages.html template.
     """
     return render_template('messages.html')

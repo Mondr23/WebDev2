@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait until the DOM content is fully loaded before executing the script
-
+   
     const likeButton = document.querySelector('.btn-like'); 
 
     if (likeButton) {
-        // Check if the button exists to avoid errors when it is not present
 
         likeButton.addEventListener('click', async function () {
             // Add a click event listener to handle the "Like" toggle functionality

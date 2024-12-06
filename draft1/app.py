@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-from routes import *  # Import routes after app initialization
+from routes import *  
 
 if __name__ == '__main__':
     app.run(debug=True)  

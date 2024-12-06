@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Ensure the DOM is fully loaded before initializing the charts
 
     // Chart for Listings by Category
     const categoryCtx = document.getElementById('listingsByCategoryChart').getContext('2d');
